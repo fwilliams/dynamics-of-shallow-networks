@@ -1,0 +1,51 @@
+\documentclass{article}
+\usepackage[utf8]{inputenc}
+\usepackage{amsmath}
+\usepackage{amsfonts}
+\usepackage{amssymb}
+\usepackage{amsthm}
+\usepackage{physics}
+\usepackage[colorlinks]{hyperref}
+
+\title{On the Geometry of Deep Neural Networks}
+\author{Francis Williams}
+\date{January 2019}
+
+
+\theoremstyle{definition}
+\newtheorem{definition}{Definition}[section]
+
+\theoremstyle{claim}
+\newtheorem{claim}{Claim}[section]
+
+\theoremstyle{corollary}
+\newtheorem{corollary}{Corollary}[section]
+
+\theoremstyle{theorem}
+\newtheorem{theorem}{Theorem}[section]
+
+\theoremstyle{remark}
+\newtheorem{remark}{Remark}[section]
+
+\begin{document}
+\setlength\parindent{0pt}
+
+\newcommand{\R}{\mathbb{R}}
+\newcommand{\N}{\mathcal{N}}
+\newcommand{\relu}[1]{[ #1 ]_{+}}
+\newcommand{\relusub}[2]{[ #1 ]_{+, #2}}
+\newcommand{\sign}{\text{sign}}
+\newcommand{\diag}[1]{\text{diag}( #1 )}
+\newcommand{\spm}{s^{\prime}}
+\newcommand{\todo}[1]{{\color{red} TODO: #1 }}
+\maketitle
+
+\section{Introduction}
+This is a scratchpad for various notes, derivations, claims, and proofs, for the Geometry of DNNs project. 
+
+\input{1d_case}
+
+\bibliography{main.bib}{}
+\bibliographystyle{plain}
+
+\end{document}

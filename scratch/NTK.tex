@@ -1,0 +1,164 @@
+\documentclass{article}
+\usepackage{graphicx}
+
+%% Useful packages
+\usepackage{amsmath, amsthm, amssymb}
+\usepackage{graphicx}
+\usepackage[colorinlistoftodos]{todonotes}
+\usepackage[colorlinks=true, allcolors=blue]{hyperref}
+\usepackage{tikz}
+\usepackage{dsfont}
+
+
+%% Language and font encodings
+\usepackage[english]{babel}
+\usepackage[utf8x]{inputenc}
+\usepackage[T1]{fontenc}
+
+%% Sets page size and margins
+\usepackage[top=1.25in, bottom=1.5in, left=1.5in, right=1.5in]{geometry}
+\setlength\parindent{0pt}
+
+%% Math environments
+\newtheorem{theorem}{Theorem}
+%\numberwithin{theorem}{section}
+\newtheorem{proposition}[theorem]{Proposition}
+\newtheorem{lemma}[theorem]{Lemma}
+\newtheorem{corollary}[theorem]{Corollary}
+\newtheorem{definition}[theorem]{Definition}
+\newtheorem{problem}[theorem]{Problem}
+\newtheorem{remark}[theorem]{Remark}
+\newtheorem{example}[theorem]{Example}
+\newtheorem{conjecture}[theorem]{Conjecture}
+\newtheorem{algorithm}[theorem]{Algorithm}
+
+\newcommand{\RP}{\mathbb{RP}}
+\newcommand{\RR}{\mathbb{R}}
+\newcommand{\QQ}{\mathbb{Q}}
+\newcommand{\PP}{\mathbb{P}}
+\newcommand{\CC}{\mathbb{C}}
+\newcommand{\ZZ}{\mathbb{Z}}
+\newcommand{\NN}{\mathbb{N}}
+
+\newcommand{\eg}{{\em e.g.}}
+\newcommand{\ie}{{\em i.e.}}
+
+\def\note#1{\textcolor{blue}{#1}}
+
+\title{{\bf Neural Tangent Kernel}}
+\author{}
+\date{}
+
+\begin{document}
+\maketitle
+
+Let $\mathcal L_\mu = \mathcal L^2(\RR^{d_x},\mu)$ be a
+Lebesgue space of functions $\RR^ {d_x} \rightarrow \RR$ with innner product
+defined by a data distribution $\mu (x)$:
+
+\begin{equation}
+\langle f, g \rangle_{\mu} = \int f(x)g(x) d\mu(x) = \mathbb E_\mu
+[f
+(x)g
+(x)].
+\end{equation}
+
+Inside $\mathcal L_\mu$ we consider a family of functions $\mathcal F_\Phi =
+\{f_\theta = \Phi (\theta)\}$ parameterized by a map $\Phi: \RR^ {d_\theta}
+\rightarrow \mathcal L_\mu$. Given a functional $C: \mathcal L_\mu \rightarrow \RR$, we wish to solve
+
+\begin{equation}
+\min_{f \in \mathcal F_\Phi} C[f], \quad \mbox{ or equivalently } \quad \min_
+{\theta \in
+\RR^{d_\theta}} L(\theta),
+\end{equation} where $L(\theta) = C[\Phi(\theta)]$. If $d \Phi(\theta): \RR^{d_\theta}
+\rightarrow \mathcal L_\mu$ is the differential of $\Phi$ at $\theta$, then for
+every parameter $\theta$, we define a linear map $K(\theta): \mathcal L_\mu
+\rightarrow \mathcal L_\mu$ as
+
+\begin{equation}
+K(\theta) = d \Phi(\theta) \circ d \Phi(\theta)^*: \mathcal L_\mu \rightarrow \mathcal L_\mu
+\end{equation}
+
+where $d \Phi(\theta)^*$ denotes the adjoint of $d \Phi(\theta)$ (\ie,
+$\langle d \Phi(\theta)(\xi), g \rangle_{\mu} = \langle \xi, d \Phi
+(\theta)^*(g) \rangle_{\RR^{d_\theta}}$). Note that $K(\theta)$ is
+self-adjoint so it also defines a symmetric map $\mathcal L_\mu \times \mathcal L_\mu
+\rightarrow \RR$ by $K(f,g) = \langle f, K g \rangle = \langle K f, g
+\rangle$.
+
+\begin{lemma} If $\theta(t)$ is an integral curve for the gradient field $\nabla L$ in $\RR^{d_\theta}$,
+then corresponding curve $f(t) = \Phi(\theta(t))$ in $\mathcal L_\mu$ satisfies
+\begin{equation}
+\frac{d f}{dt}(t) = K(\theta(t))[\delta C[\Phi(\theta(t))]],
+\end{equation}
+where $\delta C[f]$ is the (functional) gradient of $C$ at $f$.
+\end{lemma}
+
+We specialize this to the case
+
+\begin{equation}
+\Phi(\theta) = f(\theta,x) = \frac 1 {\sqrt m} \sum_{i=1}^m c_i
+[a_i \cdot x + b_i]_+,
+\qquad \theta = (a, b, c).
+\end{equation}
+
+In this case,
+
+
+\begin{equation}
+\frac{\partial \Phi}{\partial \theta} = \begin{bmatrix}
+    \frac{\partial f}{\partial \alpha} & \frac{\partial \Phi}{\partial w}
+\end{bmatrix}, \qquad K(\theta) = \frac{\partial \Phi}{\partial \theta} 
+\frac{\partial \Phi}{\partial \theta}^T = \frac{\partial \Phi}{\partial a} 
+\frac{\partial \Phi}{\partial a}^T + \frac{\partial \Phi}{\partial b} 
+\frac{\partial \Phi}{\partial b}^T + \frac{\partial \Phi}{\partial c} 
+\frac{\partial \Phi}{\partial c}^T= K^a(\theta) + K^b(\theta) + K^c(\theta)
+\end{equation}
+
+where
+
+\begin{equation}
+K^a(\theta)(x_1,x_2) = \frac 1 m \sum_{i=1}^m c_i^2 (x_1\cdot x_2) \mathds 1 
+[a_i
+\cdot x_1 + b_i \ge 0] \mathds 1 [a_i
+\cdot x_2 + b_i \ge 0]
+\end{equation}
+
+\begin{equation}
+K^b(\theta)(x_1,x_2) = \frac 1 m \sum_{i=1}^m c_i^2 \mathds 1 
+[a_i
+\cdot x_1 + b_i \ge 0] \mathds 1 [a_i
+\cdot x_2 + b_i \ge 0]
+\end{equation}
+
+\begin{equation}
+K^c(x_1,x_2) = \frac 1 m \sum_{i=1}^m [a_i\cdot x_1 + b_i]_+ [a_i\cdot x_2 +
+b_i]_+
+\end{equation}
+
+
+
+In the limit $m \rightarrow \infty$, these become
+
+\begin{equation}
+K^a(\theta)(x_1,x_2) = \mathbb E_{a,b,c}[c^2 (x_1\cdot x_2) \mathds 1 
+[a
+\cdot x_1 + b \ge 0] \mathds 1 [a
+\cdot x_2 + b \ge 0]]
+\end{equation}
+
+\begin{equation}
+K^b(\theta)(x_1,x_2) = \mathbb E_{a,b,c} [c^2 \mathds 1 
+[a
+\cdot x_1 + b \ge 0] \mathds 1 [a
+\cdot x_2 + b \ge 0]]
+\end{equation}
+
+\begin{equation}
+K^c(x_1,x_2) = \mathbb E_{a,b} [[a\cdot x_1 + b]_+ [a\cdot x_2 +
+b]_+]
+\end{equation}
+
+
+\end{document}

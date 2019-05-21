@@ -1,0 +1,187 @@
+\section{A 1D, 1-Hidden-Layer Network}
+
+Here we consider the network:
+\begin{equation}\label{eq:1layer1d}
+    \phi(u; \theta=(a, b, c)) : \R \rightarrow \R = c^T\relu{au + b} 
+\end{equation}
+
+Where: $x \in \R$, $a, b, c \in \R^d$
+
+These networks are piecewise linear functions of their input. The boundaries of each region occur at
+\begin{equation}
+    u = -\frac{b_k}{a_k} = e_k
+\end{equation}
+
+We define the reconstruction loss, as 
+\begin{equation}
+    L(\theta) = \sum_{i=1}^n |f(u_i; \theta) - y_i)|^2 = \sum_{i=1}^n l(\theta)
+\end{equation}
+
+
+\subsection{Partial derivatives of the reconstruction loss}
+
+First, we can rewrite $l(\theta)$ in terms of $e$:
+
+\begin{align}
+    c_k[a_k u + b_k]_+ =& c_k[\frac{a_k}{a_k} (a_k u + b_k)]_+ \\
+                       =& c_k[a_k(u - e_k)]_+
+\end{align}
+
+And, thus:
+\begin{equation}
+    l(\theta) = \sum_{j=1}^d c_j[a_j(u - e_j)]_+
+\end{equation}
+
+and
+\begin{equation}
+    L(\theta) = \sum_i \sum_{j=1}^d (c_j[a_j(u_i - e_j)]_+ - y_i)^2
+\end{equation}
+
+\paragraph{Partial derivatives $\partial_a L$} Now we take the partial derivative of $L$ with respect to $a_k$:
+
+\begin{equation}
+    \partial_{a_k} L = 2 \sum_i (c_k [a_k(u_i - e_k)]_+ - y_i) \partial_{a_k} c_k[a_k(u_i - e_k)]_+
+\end{equation}
+
+Observe that $a_k(e_k - u_i) > 0$ when either ($a_k > 0$ and $e_k < u_i$) or ($a_k < 0$ and $e_k > u_i$). Now let $E_{k-} = \{i | u_i < e_k\}$, $E_{k+} = \{i | u_i > e_k\}$. (Note: I drop the $+$ and $-$ subscript in the following but the equations do not change for a given $a$). Then,
+
+\begin{equation}\label{eq:partial_a}
+    \partial_{a_k} L = 2 \sum_{i \in E_k} (c_k a_k(u_i - e_k) - y_i) c_k u_i
+\end{equation}
+
+Let's assume $c_k \neq 0$ and $u_i \neq 0$ Setting Equation~\ref{eq:partial_a} to 0:
+
+\begin{align}
+    \partial_{a_k} L = & \Rightarrow 2 \sum_{i \in E_k} (c_k a_k(u_i - e_k) - y_i) c_k u_i &= 0 \\
+                       & \Rightarrow   \sum_{i \in E_k} c_k^2 a_k u_i^2 + c_k^2 b_k u_i - c_k u_i y_i &= 0
+\end{align}
+
+Which, for a fixed weight vector $a$ and knots $e$, Equation~\ref{eq:grad_ak_zero} gives us a the following condition for $\partial_a L = 0$:
+\begin{equation}
+    c_k^2 a_k \sum_{i \in E_k} u_i^2 + c_k^2 b_k \sum_{i \in E_k} u_i - c_k \sum_{i \in E_k} u_i y_i = 0 \label{eq:grad_ak_zero}
+\end{equation}
+
+
+
+\paragraph{Partial derivatives $\partial_a L$} We can repeat a similar process for $\partial_b L$:
+
+\begin{equation}\label{eq:partial_b}
+    \partial_{b_k} L = 2 \sum_{i \in E_k} (c_k a_k(u_i - e_k) - y_i) c_k
+\end{equation}
+
+And setting $\partial_{b_k} L = 0$:
+\begin{align}
+    \partial_{b_k} L = & \Rightarrow 2 \sum_{i \in E_k} (c_k a_k(u_i - e_k) - y_i) c_k &= 0 \\
+                       & \Rightarrow   \sum_{i \in E_k} c_k^2 a_k u_i + c_k^2 b_k - c_k y_i &= 0
+                       \label{eq:grad_bk_zero}
+\end{align}
+
+Which, for a fixed $a$ and $e$, yields the following condition for $\partial_a L = 0$.
+\begin{equation}
+    c_k^2 a_k \sum_{i \in E_k} u_i + |E_k| c_k^2 b_k - c_k \sum_{i \in E_k} y_i = 0
+\end{equation}
+
+\paragraph{Partial derivatives $\partial_c L$} Finally, we repeat for $\partial_c L$:
+
+\begin{equation}\label{eq:partial_b}
+    \partial_{c_k} L = 2 \sum_{i \in E_k} (c_k a_k(u_i - e_k) - y_i) (a_k u_i + b_k)
+\end{equation}
+
+And setting $\partial_{c_k} L = 0$:
+\begin{align}
+    \partial_{c_k} L = & \Rightarrow 2 \sum_{i \in E_k} (c_k a_k(u_i - e_k) - y_i) (a_ku_i + b_k) &= 0 \\
+                       & \Rightarrow   \sum_{i \in E_k} c_k a_k^2 u_i^2 + 2 a_k b_k c_k u_i - a_k y_i u_i - b_k y_i + c_k b_k^2 &= 0
+\end{align}
+
+Which yields the following condition for $\partial_{c} L = 0$
+\begin{equation}
+   c_k a_k^2     \sum_{i \in E_k} u_i^2   + 
+   2 a_k b_k c_k \sum_{i \in E_k} u_i     -
+   a_k           \sum_{i \in E_k} y_i u_i -
+   b_k           \sum_{i \in E_k} y_i     + 
+   |E_k| c_k b_k^2 = 0 \label{eq:grad_ck_zero}
+\end{equation}
+
+% \subsection{Minima of the Reconstruction Loss}
+% The reconstruction loss has gradient:
+
+% \begin{equation}\label{eq:gradient}
+%     \nabla L = \sum_i \nabla l(\theta) = 2(\phi(u_i;\theta) - y_i)\nabla_\theta \phi(u_i; \theta)
+% \end{equation}
+
+% \subsubsection{Subgradients of ($\nabla_\theta \phi = 0$)}
+% The partial sub-gradients $\partial_a \phi$, $\partial_b \phi$, and $\partial_c \phi$ are:
+% \begin{align}\label{eq:subgrad_a}
+%     (\partial_a \phi)_k &= \begin{cases}\{c_k x \}      & \text{if } a_k u + b_k > 0\\
+%                                         [0, c_k x] & \text{if } a_k u + b_k = 0\\
+%                                         \{0\}          & \text{if } a_k u + b_k < 0\end{cases}\\
+%     (\partial_b \phi)_k &= \begin{cases}\{c_k\}      & \text{if } a_k u + b_k > 0\\
+%                                         [0, c_k] & \text{if } a_k u + b_k = 0\\
+%                                         \{0\}        & \text{if } a_k u + b_k < 0\end{cases}\\
+%     (\partial_c \phi)_k &= [a_k x + b_k]_+\label{eq:subgrad_c}
+% \end{align}
+
+% Equations \ref{eq:subgrad_a} through \ref{eq:subgrad_c} show that $0 \in \nabla \phi$ when $a_k u + b_k \leq 0, i = 1...d$. This happens when:
+
+% \begin{equation}
+% a_k u + b_k \leq 0 \Rightarrow 
+% \begin{cases}
+% u \leq e_k & \text{if } b_k > 0, a_k > 0\\
+% u \leq e_k & \text{if } b_k < 0, a_k > 0\\
+% u \geq e_k & \text{if } b_k > 0, a_k < 0\\
+% u \geq e_k & \text{if } b_k < 0, a_k < 0
+% \end{cases}
+% \end{equation}
+
+
+
+\subsection{Taking the gradient of the loss with respect to knot positions}
+
+We observe that the piecewise linear function \ref{eq:1layer1d} is a linear spline with knots $e_k = -\frac{b_k}{a_k}$. We can transform the equation: 
+
+\begin{align}
+    c_k[a_k u + b_k]_+ =& c_k[\frac{a_k}{a_k} (a_k u + b_k)]_+ \\
+                       =& c_k[a_k(u - e_k)]_+
+\end{align}
+
+Now let's consider the partial derivative $\partial_{e_k} L(\theta)$:
+
+\begin{align}
+    \partial_{e_k} L(\theta) &= \partial_{e_k} \sum_i \sum_{j=1}^d (c_j [a_j(e_j - u_i)]_+ - y_i)^2 \\
+                             &= \sum_i \partial_{e_k} (c_k [a_k(e_k - u_i)]_+ - y_i)^2 \\
+                             &= \sum_i 2 (c_k [a_k(e_k - u_i)]_+ - y_i) \partial_{e_k}(c_k[a_k(e_k - u_i)]_+)
+\end{align}
+
+And the subgradients:
+\begin{equation}
+    \partial_{e_k} c_k[a_k(e_k - u_i)]_+ = \begin{cases}
+    c_k a_k       & \text{if } a_k > 0, e_k > u_i, \text{ or } a_k < 0, e_k < u_i \\
+    [0, c_k a_k]  & \text{if } a_k = 0 \text{ or } e_k = u_i \\
+    0             & \text{otherwise}
+    \end{cases} 
+\end{equation}
+
+Now let $E_{k-} = \{i | u_i < e_k\}$, $E_{k+} = \{i | u_i > e_k\}$ 
+\begin{equation} \label{eq:grad_knots}
+    \partial_{e_k} L(\theta) = \begin{cases}
+                                   \sum_{i \in E_{k+}}  2 (c_k a_k(e_k - u_i) - y_i) c_k a_k & \text{if } a_k > 0 \\
+                                   \sum_{i \in E_{k-}}  2 (c_k a_k(e_k - u_i) - y_i) c_k a_k & \text{if } a_k < 0
+                               \end{cases}
+\end{equation}
+
+Equating \ref{eq:grad_knots} to 0 and supposing that $c_k a_k \neq 0$:
+
+\begin{align}
+\partial_{e_k} L = 0 & \Rightarrow \sum_{i \in E_k} c_k a_k (c_k a_k (e_k - u_i) - y_i)    &= 0 \\
+                     & \Rightarrow \sum_{i \in E_k} c_k a_k (e_k - u_i) - y_i              &= 0 \\
+                     & \Rightarrow \sum_{i \in E_k} c_k a_k (-\frac{b_k}{a_k} - u_i) - y_i &= 0 \\
+                     & \Rightarrow \sum_{i \in E_k} -c_k (b_k + a_k u_i) - y_i             &= 0 \\
+                     & \Rightarrow \sum_{i \in E_k} -c_k (a_k u_i + b_k) - y_i             &= 0 \\
+                     \Rightarrow & -\sum_{i \in E_k} c_k (a_k u_i + b_k) = \sum_{i \in E_k} y_i
+%                                  & \sum_{i \in E_k} c_k a_k (-\frac{b_k}{a_k} - u_i) - y_i) = 0
+\end{align}
+
+Which yields the following condition for $\partial_e L = 0$
+\begin{equation}
+    -c_k a_k \sum_{i \in E_k} u_i - \sum_{i \in E_k} y_i + |E_k| b_k = 0
+\end{equation}

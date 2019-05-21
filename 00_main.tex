@@ -1,0 +1,157 @@
+ \documentclass{article}
+
+% if you need to pass options to natbib, use, e.g.:
+%     \PassOptionsToPackage{numbers, compress}{natbib}
+% before loading neurips_2019
+
+% ready for submission
+ \usepackage{neurips_2019}
+
+% to compile a preprint version, e.g., for submission to arXiv, add add the
+% [preprint] option:
+%     \usepackage[preprint]{neurips_2019}
+
+% to compile a camera-ready version, add the [final] option, e.g.:
+%     \usepackage[final]{neurips_2019}
+
+% to avoid loading the natbib package, add option nonatbib:
+%     \usepackage[nonatbib]{neurips_2019}
+
+\usepackage[utf8]{inputenc} % allow utf-8 input
+\usepackage[T1]{fontenc}    % use 8-bit T1 fonts
+\usepackage{hyperref}       % hyperlinks
+\usepackage{url}            % simple URL typesetting
+\usepackage{booktabs}       % professional-quality tables
+\usepackage{amsfonts}       % blackboard math symbols
+\usepackage{nicefrac}       % compact symbols for 1/2, etc.
+\usepackage{microtype}      % microtypography
+\usepackage{graphicx}
+\usepackage{bbm}
+\usepackage{dsfont}
+\usepackage{amsmath, amsthm, amssymb}
+\usepackage{xcolor}
+\usepackage{bm}
+
+%------------------------------------------------------------------------
+% Alter some LaTeX defaults for better treatment of figures:
+    % See p.105 of "TeX Unbound" for suggested values.
+    % See pp. 199-200 of Lamport's "LaTeX" book for details.
+    %   General parameters, for ALL pages:
+    \renewcommand{\topfraction}{0.9}     % max fraction of floats at top
+    \renewcommand{\bottomfraction}{0.8}     % max fraction of floats at bottom
+    %   Parameters for TEXT pages (not float pages):
+    \setcounter{topnumber}{4}
+    \setcounter{bottomnumber}{4}
+    \setcounter{totalnumber}{8}     % 2 may work better
+    \setcounter{dbltopnumber}{4}    % for 2-column pages
+    \renewcommand{\dbltopfraction}{0.95}     % fit big float above 2-col. text
+    \renewcommand{\textfraction}{0.07}     % allow minimal text w. figs
+    %   Parameters for FLOAT pages (not text pages):
+    \renewcommand{\floatpagefraction}{0.7}     % require fuller float pages
+     % N.B.: floatpagefraction MUST be less than topfraction !!
+    \renewcommand{\dblfloatpagefraction}{0.7}     % require fuller float pages
+%------------------------------------------------------------------------
+
+\newcommand{\todo}[1]{{\color{red} #1 }}
+
+
+%% Math environments
+\newtheorem{theorem}{Theorem}
+%\numberwithin{theorem}{section}
+\newtheorem{proposition}[theorem]{Proposition}
+\newtheorem{lemma}[theorem]{Lemma}
+\newtheorem{corollary}[theorem]{Corollary}
+\newtheorem{definition}[theorem]{Definition}
+\newtheorem{problem}[theorem]{Problem}
+\newtheorem{remark}[theorem]{Remark}
+\newtheorem{example}[theorem]{Example}
+\newtheorem{conjecture}[theorem]{Conjecture}
+\newtheorem{algorithm}[theorem]{Algorithm}
+
+\newcommand{\RP}{\mathbb{RP}}
+\newcommand{\RR}{\mathbb{R}}
+\newcommand{\QQ}{\mathbb{Q}}
+\newcommand{\PP}{\mathbb{P}}
+\newcommand{\CC}{\mathbb{C}}
+\newcommand{\ZZ}{\mathbb{Z}}
+\newcommand{\NN}{\mathbb{N}}
+\newcommand{\TT}{\mathbb{T}}
+
+\newcommand{\eg}{{\em e.g.}}
+\newcommand{\ie}{{\em i.e.}}
+
+\def\note#1{\textcolor{blue}{#1}}
+
+
+\DeclareMathOperator*{\argmin}{\arg\!\min}
+\DeclareMathOperator*{\argmax}{\arg\!\max}
+
+\title{Gradient Dynamics of Shallow 1D ReLU Networks}
+
+% The \author macro works with any number of authors. There are two commands
+% used to separate the names and addresses of multiple authors: \And and \AND.
+%
+% Using \And between authors leaves it to LaTeX to determine where to break the
+% lines. Using \AND forces a line break at that point. So, if LaTeX puts 3 of 4
+% authors names on the first line, and the last on the second line, try using
+% \AND instead of \And before the third author name.
+
+\author{%
+  David S.~Hippocampus\thanks{Use footnote for providing further information
+    about author (webpage, alternative address)---\emph{not} for acknowledging
+    funding agencies.} \\
+  Department of Computer Science\\
+  Cranberry-Lemon University\\
+  Pittsburgh, PA 15213 \\
+  \texttt{hippo@cs.cranberry-lemon.edu} \\
+  % examples of more authors
+  % \And
+  % Coauthor \\
+  % Affiliation \\
+  % Address \\
+  % \texttt{email} \\
+  % \AND
+  % Coauthor \\
+  % Affiliation \\
+  % Address \\
+  % \texttt{email} \\
+  % \And
+  % Coauthor \\
+  % Affiliation \\
+  % Address \\
+  % \texttt{email} \\
+  % \And
+  % Coauthor \\
+  % Affiliation \\
+  % Address \\
+  % \texttt{email} \\
+}
+
+\begin{document}
+
+\maketitle
+
+\begin{abstract}
+We present a theoretical and empirical study of the gradient dynamics of shallow ReLU networks with one-dimensional input. We focus on the problem of least-squares interpolation, and explain how the initialization of each neuron affects the nature of its dynamics. More precisely, we show that the trajectory of any neuron is locally a solution to one of two possible ODEs. We also investigate two extreme regimes of the dynamics: \emph{radial (or kernel) dynamics} occur when the outer layer is much larger than the inner one, while \emph{tangential (or linearly adaptive) dynamics} occurs the inner layer is much larger outer-one (...). We show that learning in the radial regime yields smooth non-adaptive interpolants, minimizing curvature, and reduces to \emph{cubic splines}. However, learning in the tangential dynamics favors instead \emph{adaptive linear splines}, where knots cluster at the sample points.
+
+
+
+% We present a theoretical and empirical analysis of approximation of functions (possibly with noisy data) using feedforward ReLU networks. We focus our analysis on two opposite regimes which can be combined for different effect: In the \emph{lazy regime}, the network parameters move along the \emph{Tangent Kernel} and in the \emph{adaptive regime} the network kernel is forced to adapt to the data. We prove that in both regimes, there is an implicit curvature minimizing prior, and in the special case of 1D functions, we use this prior to draw the connection between feedforward networks and cubic splines. Furthermore, in the gradient descent dynamics high curvature features of the model are fit first (\todo{I bet these correspond to large principal components of the kernel and it would be nice to show it}). In the case of the adaptive kernel, the dynamics bias models towards piecewise linear functions with vertices in high curvature regions, providing the ability to generalize better in underparameterized regimes. Finally, by using adaptive kernels, we show that we can tune the model to filter out different levels of noise without retraining the network.
+
+% We first We focus our analysis on a spectrum of cases defined by two extrema: namely lazy training, where the inner-layer neurons and fixed, and non-lazy training, where the inner-neurons aare forced to move. We show that the lazy case favors smooth approximants, yielding cubic spline interpolation in the special case in 1D. In the nonlazy case, we show that the approximants are biased towards piecewise linear functions placing knots in regions of high curvature. In both these regimes we demonstrate implicit regularization of ReLU network functions.
+\end{abstract}
+
+
+\input{01_introduction}
+\input{02_preliminaries}
+\input{03_local_dynamics}
+\input{04_global_dynamics}
+\input{05_experiments}
+\input{06_conclusion}
+\input{11_lazy_training}
+\bibliography{main.bib}{}
+\bibliographystyle{plain}
+\newpage
+\appendix
+\input{A0_appendix.tex}
+\end{document}

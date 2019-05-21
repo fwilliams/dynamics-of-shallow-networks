@@ -1,0 +1,335 @@
+\section{Piecewise Linear Regions of DNNs}
+We know that Neural Networks with ReLU activations form piecewise linear functions. Below, I derive explicit equations for the linear regions in a 1-hidden layer neural network. In particular I derive the equations for linear regions in terms of the equations of neighboring regions. I show that the equation for one region is a function of the average of the equations of neighboring regions. I believe the fact that regions are (partially) averages of their neighbors, is relevant to the regularizing behavior we see in our experimental results. 
+
+\subsection{A 1-Hidden Layer Neural Network}
+Consider a 1-hidden layer neural network, $f: \R^2 \rightarrow \R^3$. Such a network has the equations:
+
+\begin{equation}\label{eq:1layerdnn}
+    f(\vec{x}) = B \relu{A\vec{x} + \vec{a}}
+\end{equation}
+
+\noindent
+Where 
+\begin{itemize}
+    \item $A \in \R^{d \times 2}$
+    \item $\vec{a} \in \R^d$
+    \item  $B \in \R^{3 \times d}$
+    \item $\relu{\cdot}$ is the ReLU operator (i.e. $\relusub{\vec{v}}{i} = \max(v_i, 0)$)
+\end{itemize}
+
+\begin{definition}\label{def:sign}
+Define the \emph{sign of the point} $x \in \R^2$, $S(\vec{x})$ be the binary vector 
+$$S(\vec{x})_i = \begin{cases} 1 & \text{if } (A \vec{x} + \vec{a})_i > 0\\ 0 & \text{else} \end{cases}$$. 
+\end{definition}
+
+% Let $S(\vec{x})$ be the vector $\sign(A\vec{x} + \vec{a})$ where $\sign(a)_i = \begin{cases} 1 & \text{if } a_i > 0\\ 0 & \text{else} \end{cases}$. We can thus rewrite Equation~\ref{eq:1layerdnn} as: 
+Using Definition~\ref{def:sign}, we can write Equation~\ref{eq:1layerdnn} as:
+\begin{equation}\label{eq:1layerdnn_s}
+    f(\vec{x}) = B \big(\diag{S(\vec{x}})(A\vec{x} + \vec{a})\big)
+\end{equation}
+
+Equation \ref{eq:1layerdnn_s} shows that any two $x_1$, $x_2$ such that $S(x_1) = S(x_2)$ are mapped to the same linear region by $f$. Furthermore, $f$ is a piecewise linear map where each linear region corresponds to some binary vector $S$. We now define the collection of points forming a linear region in $f$:
+
+\begin{definition}\label{def:pl_region}
+The input region, $X_s = \{ \vec{x} \in \R^2 | S(\vec{x}) = s\}$ is set of points in the domain of $f$ which belong to the linear region determined by the binary vector $s$.
+\end{definition}
+
+We can rewrite Equation~\ref{eq:1layerdnn} as:
+\begin{align}
+    f(u, v) =& 
+    \begin{bmatrix}
+        b_{11} & b_{12} & \ldots & b_{1d} \\
+        b_{21} & b_{22} & \ldots & b_{2d} \\
+        b_{31} & b_{32} & \ldots & b_{3d} 
+    \end{bmatrix} \Bigg[\begin{bmatrix}
+    a_{11} & a_{12} \\
+    a_{11} & a_{12} \\
+    \ldots & \ldots \\
+    a_{d1} & a_{d2} \\
+    \end{bmatrix} \begin{bmatrix} u \\ v \end{bmatrix} + \begin{bmatrix}\vec{a}_1 \\ \ldots \\ \vec{a}_d \end{bmatrix}\Bigg]_+ \nonumber
+    \\
+    =& \begin{bmatrix}
+    b_{11} \relu{a_{11} u + a_{12} v + \vec{a}_1} + \ldots + b_{1d} \relu{a_{d1} u + a_{d2} v + \vec{a}_d} \\
+    b_{21} \relu{a_{11} u + a_{12} v + \vec{a}_1} + \ldots + b_{2d} \relu{a_{d1} u + a_{d2} v + \vec{a}_d} \\
+    b_{31} \relu{a_{11} u + a_{12} v + \vec{a}_1} + \ldots + b_{3d} \relu{a_{d1} u + a_{d2} v + \vec{a}_d} \\
+    \end{bmatrix} \nonumber
+    \\
+    =& S(\vec{x})_1 f_1(x) + \ldots + S(\vec{x})_d f_d(x) \label{eq:1layerdnn_factored}
+\end{align}
+Where 
+\begin{equation}\label{eq:fk_j}
+    f_i(\vec{x})_j = b_{ji} (a_{i1} u + a_{i2} v + \vec{a}_i)
+\end{equation}
+
+Using Equation~\ref{eq:1layerdnn_factored}, and Definition~\ref{def:pl_region}, we can express the equation for a single linear region of $f$ as:
+\begin{equation}
+    f(X_s) = \sum_{i=1}^d s_i f_i(X_s)
+\end{equation}
+
+\begin{definition}\label{def:seg_nhood}
+The \emph{region neighborhood}, $\N(s)$, of a region defined by the binary vector, $s$, is the set of binary vectors which correspond to regions of $f$ which are adjacent to $f(X_s)$. More precisely: $$\N(s) = \{ s^\prime |  d(s, s^\prime) = 1 , X_{s^\prime} \cap X_s \neq \emptyset\}$$ Where $d(s_1, s_2)$ is the minimum number of bit-flips required to transform $s_1$ into $s_2$ (and vice-versa)
+\end{definition}
+
+\begin{definition}\label{def:extension}
+The \emph{extension of the region}, $X_s$ to the whole domain is:
+$$f^s(\vec{x} \in \R^2) = \sum_{i=1}^{d} S(X_s)_i f(\vec{x})$$
+which is simply the equation for the piecewise linear patch $X_s$ extended to all of $\R^2$.
+\end{definition}
+
+
+
+\begin{claim}\label{claim:nhood_diff}
+if $s^\prime \in \N(s)$, then $\exists$ exactly one $k \in [1, d]$ such that one of the following holds: 
+\begin{enumerate}
+    \item $f(X_s)$ = $f^{s^\prime}(X_s) + f_k(X_s)$
+    \item $f(X_s)$ = $f^{s^\prime}(X_s) - f_k(X_s)$
+\end{enumerate}
+\end{claim}
+\begin{proof}
+By definition \ref{def:seg_nhood}, $d(s, \spm)$ = 1 (i.e. $s$ and $\spm$ differ by flipping one bit). \begin{enumerate}
+    \item Suppose without loss of generality that $s_k = 1$ and $\spm_k = 0$. Then $s - \spm$ is the binary vector with the value one at index $k$ and 0 everywhere else. Thus: $f(X_s) - f^{\spm}(X_s)= (\sum_{i=1}^d s_i f_i(X_s)) - (\sum_{i=1}^d \spm_i f_i(X_s)) = f_k(X_s) \Rightarrow f(X_s) = f^{\spm}(X_s) + f_k(X_s)$.
+    \item Suppose alternatively that $s_k = 0$ and $\spm_k = 1$. Then $\spm - s$ is the binary vector with the value one at index $k$ and 0 everywhere else. \\Thus: $f^{\spm}(X_s) - f(X_s)= (\sum_{i=1}^d \spm_i f_i(X_s)) - (\sum_{i=1}^d s_i f_i(X_s)) = f_k(X_s) \Rightarrow f(X_s) = f^{\spm}(X_s) - f_k(X_s)$
+\end{enumerate} 
+\end{proof}
+
+\begin{claim}\label{claim:not_nbors}
+If $s_1 \neq s_2 \in \N(s)$, then $s_1 \notin \N(s_2)$ and $s_1 \notin \N(s_1)$.
+\end{claim}
+\begin{proof}
+By Definition \ref{def:seg_nhood}, $s$ and $s_1$ must differ at index $j_1$. Similarly $s$ and $s_2$ must differ at index $j_2$. Since $s_1 \neq s_2$, $j_1 \neq j_2$. Thus to transform $s_1$ into $s_2$ (or vice-versa), we must flip both $j_1$ and $j_2$. Therefore $d(s_1, s_2) = 2 \Rightarrow s_1 \notin \N(s_2)$ (and vice-versa).
+\end{proof}
+
+\begin{corollary}\label{co:not_nbors}
+By Claim~\ref{claim:nhood_diff}, for $s_1 \neq s_2 \in \N(s)$, $f(X_s) = f^{s_1}(X_s) \pm f_{k_1}(X_s)$, and $f(X_s) = f^{s_2}(X_s) \pm f_{k_2}(X_s)$. Then from the proof Claim~\ref{claim:not_nbors}, $k_1 \neq k_2$.
+\end{corollary}
+
+\begin{theorem}\label{thm:1layer_avg}
+Suppose $|\N(s)| = n$. Partition the set $\N(s)$ into $\N_1(s) = \{ s_1, \ldots, s_{m-1} \}$, and $\N_2(s) = \{s_m, \ldots s_n\}$, \\so that $f(X_{s}) = \begin{cases}f^{s_i}(X_s) + f_{k_i}(X_s) & \text{if } i < m \\f^{s_i}(X_s) - f_{k_i}(X_s) & \text{if } i \geq m \end{cases}$ 
+
+We can write the equation for the piecewise linear region $f(X_s)$ as follows:
+\begin{equation}\label{eq:thm_1layer_avg}
+f(X_s) = \underbrace{\frac{1}{n} \sum_{i=1}^n f^{s_i}(X_s)}_{\text{Average of nbrs}} + 
+         \overbrace{\frac{1}{n} \sum_{i=1}^{m-1} f_{k_i}(X_s)}^{\text{From nbrs w. fewer weights}} - 
+         \underbrace{\frac{1}{n} \sum_{i=m}^{n} f_{k_i}(X_s)}_{\text{From nbrs w. more weights}}
+\end{equation}
+\end{theorem}
+\begin{proof}
+By Claim~\ref{claim:nhood_diff}, 
+\begin{align}
+f(X_s) &= f^{s_1}(X_s) + f_{k_1}(X_s)\label{eq:avg_begin}\\
+       &= \ldots\\
+       &= f^{s_{m-1}}(X_s) + f_{k_{m-1}}(X-s)\\
+       &= f^{s_m}(X_s) - f_{k_m}(X_s)\\
+       &= \ldots\\
+       &= f^{s_n}(X_s) - f_{k_n}(X_s)\label{eq:avg_end}
+\end{align}
+
+And by Corollary~\ref{co:not_nbors}, $k_1 \neq \ldots \neq k_n$. Therefore we can take the average of Equations~\ref{eq:avg_begin}~through~\ref{eq:avg_end}:
+
+\begin{align*}
+    f(X_s) &= \frac{1}{n} \bigg[ \big( \sum_{i=1}^{m-1}f^{s_i}(X_s) + f_{k_i}\big) +
+              \big( \sum_{i=m}^{n} f^{s_i}(X_s) - f_{k_i} \big) \bigg]\\
+           &= \frac{1}{n} \bigg[ \big(\sum_{i=1}^{n} f^{s_i}(X_s) \big) + 
+              \big(\sum_{i=1}^{m-1} f_{k_i}(X_s) \big) -
+              \big(\sum_{i=m}^{n} f_{k_i}(X-s) \big) \bigg] \\
+           &= \frac{1}{n} \big(\sum_{i=1}^{n} f^{s_i}(X_s) \big) + 
+              \frac{1}{n} \big(\sum_{i=1}^{m-1} f_{k_i}(X_s) \big) -
+              \frac{1}{n} \big(\sum_{i=m}^{n} f_{k_i}(X_s) \big)
+\end{align*}
+\end{proof}
+
+
+\begin{remark}
+Each function, $f_k(\cdot)$ is a rank-1 linear function.
+\end{remark}
+\begin{proof}
+\begin{align*}
+    f_k(u, v) &= \begin{bmatrix}b_{1k}(a_{k1}u + a_{k2}v + \vec{a}_k) \\
+                                b_{2k}(a_{k1}u + a_{k2}v + \vec{a}_k) \\
+                                b_{3k}(a_{k1}u + a_{k2}v + \vec{a}_k) \end{bmatrix} \\
+              &= \begin{bmatrix}b_{1k}a_{k1} & b_{1k} a_{k2} & b_{1k} \vec{a}_k \\
+                                b_{2k}a_{k1} & b_{2k} a_{k2} & b_{2k} \vec{a}_k \\
+                                b_{3k}a_{k1} & b_{3k} a_{k2} & b_{3k} \vec{a}_k \\ \end{bmatrix} 
+                                \begin{bmatrix}u \\ v \\ 1 \end{bmatrix} \\
+              &= Qx\\
+\end{align*}
+Examining the rows of $Q$ we see that they are all a constant, nonzero multiple of each other. Thus $\text{rank}(Q) = 1 \Rightarrow \text{rank}(f_k) = 1$.
+\end{proof}
+
+\subsubsection{Discussion}
+Theorem~\ref{thm:1layer_avg} shows how to describe a linear region of a piecewise linear map defined in \ref{eq:1layerdnn} in terms of its neighboring regions. In particular the equation for a region is the average of its neighboring equations plus some correcting terms which come from two sources described below.
+
+\paragraph{A Hierarchy of Weights} The bit vectors $S(\vec{x} \in \R^2)$ define a hierarchy of sorts. At the top of the hierarchy is the vector $s = \mathbb{1}$. The region $f(X_s)$ uses all the weights in the Neural Network. Adjacent to this region are a set of regions whose bit vectors are all ones except for one entry. These regions use fewer weight than $f(X_s)$. We can continue this logic, until we reach the region with bit vector $s_0 = \vec{0}$ at the bottom of the hierarchy.
+
+
+Equation~\ref{eq:thm_1layer_avg} consists of a term which is the average of neighboring regions, a set of terms which arise from neighbors which are ``above'' in the hierarchy and terms which are ``below'' in the hierarchy.
+
+\subsection{Taking a Gradient Descent Step}
+Let us consider the optimization problem for a fixed $y_i$ and loss $L$ defined as follows:
+
+\begin{equation}
+    \min_{(A, B, \vec{a})} L(A, B, \vec{a}) = \min_{(A, B, \vec{a})} \sum_i || f(x_i) - y_i ||_2^2
+\end{equation}
+
+We can find a minimum to the loss, $L$ via gradient descent. Specifically, we take a sequence of steps updating $A$, $B$, and $\vec{a}$ as follows:
+\begin{align}
+A^{(j+1)} &= A^{(j)} - \alpha \pdv{L}{A} (A^{(j)}) \label{eq:gdesA}\\
+B^{(j+1)} &= B^{(j)} - \alpha \pdv{L}{B} (B^{(j)}) \label{eq:gdesB}\\
+\vec{a}^{(j+1)} &= \vec{a}^{(j)} - \alpha \pdv{L}{\vec{a}} (\vec{a}^{(j)}) \label{eq:gdesa}
+\end{align}
+
+We will assume the sequence of iterates, $X^{(j)} = (A^{(j)}, B^{(j)}, \vec{a}^{(j)})$ is such that $L$ decreases monotonically. Specifically, let's assume there exists $\sigma \in \R$, $J \in \N$ such that for all $j > J$:
+\begin{equation}
+    L(X^{(j)}) - L(X^{(j+1)}) \geq \sigma ||\nabla L(X^{(j)})||_2 ||X^{(j+1)} - X^{(j)}||_2
+\end{equation}
+
+Furthermore assume that the sequence $\{X^{(j)}\}$ terminates at a critical point, $X^{(\ast)} = (A^\ast, B^\ast, \vec{a}^\ast)$ such that $\nabla L(X^{(\ast)}) = 0$, and that within the basin of attraction of $X^{(\ast)}$, $L$ has a Lipschitz gradient:
+\begin{equation}
+    \bigg|\bigg|\pdv{L}{X} (X_1) - \pdv{L}{A} (X_2)\bigg|\bigg|_2 \leq K ||X_1 - X_2||_2 \\
+\end{equation}
+
+\begin{claim}
+If $(A^{(0)}, B^{(0)}, \vec{a}^{(0)})$ is in the basin of attraction of $(A^\ast, B^\ast, \vec{a}^\ast)$, and $0 < \alpha < \frac{2}{K}$, then gradient descent converges to the critical point $(A^\ast, B^\ast, \vec{a}^\ast)$.
+\end{claim}
+\begin{proof}
+\todo{Citation which proves this}
+\end{proof}
+
+
+
+
+\subsubsection{An implicit regularizer}
+
+\newcommand{\favg}{f_\text{avg}}
+\newcommand{\fres}{f_\text{res}}
+\newcommand{\gres}{g_\text{res}}
+
+By theorem~\ref{thm:1layer_avg}, we can write the equation of a linear region in the map $f$ as the average of neighboring regions, $\favg$ plus a residual term, $\fres$:
+\begin{equation*}
+    f(X_s) = \underbrace{\frac{1}{n} \big(\sum_{i=1}^{n} f^{s_i}(X_s) \big)}_{\favg(X_s)} + 
+             \underbrace{\frac{1}{n} \big(\sum_{i=1}^{m-1} f_{k_i}(X_s) \big) -
+              \frac{1}{n} \big(\sum_{i=m}^{n} f_{k_i}(X_s) \big)}_{\fres(X_s)}
+\end{equation*}
+
+In this section, I try to show that the sequence, $\{X^{(j)}\}$, introduced by the gradient descent flow decreases the residual term, $\fres$.
+
+From Equation \ref{eq:fk_j}, we have that after a gradient step:
+\begin{align}
+    f_k(X^{(a+1)}) &= (b_{jk} - \alpha \delta b_{jk}) ( (a_{k1} - \alpha \delta a_{k1})u + (a_{k2} - \alpha \delta a_{k2})v + \vec{a}_{k} - \alpha \delta \vec{a}_{k})\label{eq:gstep}
+                %   &= b_{jk} (a_{k1}u + a_{k2}v + \vec{a}_k) - \alpha  b_{jk} (\delta a_{k1}u + \delta a_{k2}v + \delta \vec{a}_k) - \nonumber\\
+                %   & \alpha \delta b_{jk} (a_{k1}u + a_{k2}v + \vec{a}_k) + \alpha^2 \delta b_{jk} (\delta a_{k1}u + \delta a_{k2}v + \delta \vec{a}_k)\label{eq:gstep}
+\end{align}
+
+In a neighborhood around $X^\ast$, the sequence $\{||\nabla L(X^{(k)}||\}$ converges to 0, and thus there exists some $\sigma$ for which
+\begin{equation}\label{eq:bound_pdv}
+    \bigg|\pdv{L}{X_i}(X^{(k)})\bigg| \leq \sigma ||\nabla L(X^{(a)}||
+\end{equation}
+
+This means we can bound equation~\ref{eq:gstep}:
+\newcommand{\grd}{||\nabla L(X^{(k)})||}
+\begin{align}
+    f_k(X^{(a+1)} \leq& f_k(X^{(a)}) + (b_{jk} - \alpha \sigma \grd) (& \nonumber \\
+                      & (a_{k1} - \alpha \sigma\grd)u \nonumber \\
+                      &+ (a_{k2} - \alpha \sigma\grd)v \nonumber \\
+                      &+ \vec{a}_{k} - \alpha \sigma \grd\nonumber \nonumber \\
+                      &) \\
+                      =&  f_k(X^{(a)}) + (b_{jk} - \gamma \grd) (& \nonumber \\
+                      & (a_{k1} - \gamma \grd)u \nonumber \\
+                      &+ (a_{k2} - \gamma \grd)v \nonumber \\
+                      &+ \vec{a}_{k} - \gamma \grd\nonumber \nonumber \\
+                      &)
+\end{align}
+
+
+\input{partial_derivatives.tex}
+
+
+
+
+
+
+% \subsubsection{Here be dragons:}
+% The following is a dubious sketch of things that I think might be true but need to prove.\\
+
+% \newcommand{\favg}{f_\text{avg}}
+% \newcommand{\fres}{f_\text{res}}
+% \newcommand{\gres}{g_\text{res}}
+
+% By theorem~\ref{thm:1layer_avg}, we can write the equation of a linear region in the map $f$ as the average of neighboring regions, $\favg$ plus a residual term, $\fres$:
+% \begin{equation*}
+%     f(X_s) = \underbrace{\frac{1}{n} \big(\sum_{i=1}^{n} f^{s_i}(X_s) \big)}_{\favg(X_s)} + 
+%              \underbrace{\frac{1}{n} \big(\sum_{i=1}^{m-1} f_{k_i}(X_s) \big) -
+%               \frac{1}{n} \big(\sum_{i=m}^{n} f_{k_i}(X_s) \big)}_{\fres(X_s)}
+% \end{equation*}
+
+
+% Recall that:
+% \begin{equation*}
+%     f_k(\vec{x})_j = b_{jk} (a_{k1} u + a_{k2} v + \vec{a}_k)
+% \end{equation*}
+
+% After taking a step of gradient descent step:
+
+% \begin{flalign*}
+%     f_k(\vec{x})_j^{(a+1)} &=
+%                             \bigg(b_{jk} + \epsilon \pdv{L}{b_{jk}}\bigg) 
+%                               \bigg( 
+%                                 \bigg(a_{k1} + \epsilon\pdv{L}{a_{k1}} \bigg) u + 
+%                                 \bigg(a_{k2} + \epsilon\pdv{L}{a_{k2}}\bigg) v + 
+%                                 \vec{a}_k + \epsilon \pdv{L}{\vec{a}_k} 
+%                               \bigg)\\
+%                           &= \bigg(b_{jk} + \epsilon \pdv{L}{b_{jk}} \bigg) 
+%                               \bigg( 
+%                                  (a_{k1}u + a_{k2}v + \vec{a_k}) + 
+%                                  \epsilon \bigg( \pdv{L}{a_{k1}}u + \pdv{L}{a_{k1}}v + \pdv{L}{\vec{a}_{k}} \bigg)
+%                               \bigg)\\
+%                           &= b_{jk} (a_{k1} u + a_{k2} v + \vec{a}_k) + \epsilon g(\vec{x})_j\\
+%                           &= f_k(\vec{x})_j^{(a)} + \epsilon g_k(\vec{x})_j
+% \end{flalign*}
+
+% Where:
+% \begin{flalign}
+% \epsilon g_k(\vec{x})_j = \epsilon \bigg( & b_{jk} \bigg( \pdv{L}{a_{k1}}u + \pdv{L}{a_{k1}}v + \pdv{L}{\vec{a}_{k}} \bigg) +\nonumber\\ 
+%   & \pdv{L}{b_{jk}} (a_{k1}u + a_{k2}v + \vec{a_k}) + \nonumber\\
+%   & \epsilon \pdv{L}{b_{jk}} \bigg( \pdv{L}{a_{k1}}u + \pdv{L}{a_{k1}}v + \pdv{L}{\vec{a}_{k}} \bigg)  \label{eq:residual_g_step}
+% \end{flalign}
+
+% Equation~\ref{eq:residual_g_step} implies that the gradient step for $\fres$ can be written as:
+% \begin{equation}
+%     \fres(X_s)^{(a+1)} = \fres(X_s)^{(a)} + \epsilon \gres(X_s)^{(a)}
+% \end{equation}
+
+% Where:
+% \begin{equation}
+%     \gres(X_s) = \frac{1}{n} \sum_{i=1}^{m-1} g_{k_i}(X_s) - \frac{1}{n} \sum_{i=m}^{n} g_{k_i}(X_s)
+% \end{equation}
+
+% Each monomial term in Equation~\ref{eq:residual_g_step} contains a partial derivative of $L$. We show that the gradient $\nabla L(A, B, \vec{a})$ is Lipschitz and that the sequence $\fres^{(a)}$ is bounded as $a \rightarrow \infty$.
+
+% \begin{theorem}
+% Let, $A^\ast$, $B^\ast$, and $\vec{a}^\ast$ be stationary points of the sequences defined in Equations~\ref{eq:gdesA},\ref{eq:gdesB},~and~\ref{eq:gdesa}. Define the following sets:
+
+% \begin{align*}
+%     \mathcal{A} &= \{ A | (A_0 = A) \Rightarrow \lim_{j\rightarrow \infty} A_j + \pdv{L}{A} (A_j) = A^\ast \}\\
+%     \mathcal{B} &= \{ B | (B_0 = A) \Rightarrow \lim_{j\rightarrow \infty} B_j + \pdv{L}{B} (B_j) = B^\ast \}\\
+%     \mathbf{a} &= \{ \vec{a} | (\vec{a}_0 = \vec{a}) \Rightarrow \lim_{j\rightarrow \infty} \vec{a}_j + \pdv{L}{\vec{a}} (\vec{a}_j) = \vec{a}^\ast \}
+% \end{align*}
+
+% Then there exists a metric $d$, such that the partial derivative maps $\pdv{L}{A}$, $\pdv{L}{B}$, $\pdv{L}{\vec{a}}$ are contractive in $\mathcal{A}$, $\mathcal{B}$ and, $\mathbf{a}$. 
+
+% i.e. $\forall A_1, A_2 \in \mathcal{A}$, $B_1, B_2 \in \mathcal{B}$, and $\vec{a}_1, \vec{a}_2 \in \mathbf{a}, \exists$ constants $L_A, L_B, L_{\vec{a}}$ such that: 
+
+% \begin{align*}
+%     d\bigg(\pdv{L}{A_1}, \pdv{L}{A_2} \bigg) &< L_A d(A_1, A_2)\\
+%     d\bigg(\pdv{L}{B_1}, \pdv{L}{B_2} \bigg) &< L_B d(A_1, A_2)\\
+%     d\bigg(\pdv{L}{\vec{a}_1}, \pdv{L}{\vec{a}_2} \bigg) &< L_{\vec{a}} d(\vec{a}_1, \vec{a}_2)
+% \end{align*}
+
+% \end{theorem}
+
+% If the gradient maps are contractive under the metric $d$, then each partial derivative $\pdv{L}{a_{ij}}$ is contractive under the same metric. In that case, The sequence: 
+% \begin{equation*}
+%     \fres(X_s)^{(a+1)} = \fres(X_s)^{(a)} + \epsilon \gres(X_s)^{(a)}
+% \end{equation*}
+
+% converges and is bounded. In this case, the residual between a patch's function and the average of its neighbors is bounded by a function of the Lipschitz constant of the gradient map.

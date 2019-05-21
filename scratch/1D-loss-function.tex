@@ -1,0 +1,543 @@
+\documentclass{article}
+\usepackage{graphicx}
+
+%% Useful packages
+\usepackage{amsmath, amsthm, amssymb}
+\usepackage{graphicx}
+\usepackage[colorinlistoftodos]{todonotes}
+\usepackage[colorlinks=true, allcolors=blue]{hyperref}
+\usepackage{tikz}
+\usepackage{dsfont}
+
+
+%% Language and font encodings
+\usepackage[english]{babel}
+\usepackage[utf8x]{inputenc}
+\usepackage[T1]{fontenc}
+
+%% Sets page size and margins
+\usepackage[top=1.25in, bottom=1.5in, left=1.5in, right=1.5in]{geometry}
+\setlength\parindent{0pt}
+
+%% Math environments
+\newtheorem{theorem}{Theorem}
+%\numberwithin{theorem}{section}
+\newtheorem{proposition}[theorem]{Proposition}
+\newtheorem{lemma}[theorem]{Lemma}
+\newtheorem{corollary}[theorem]{Corollary}
+\newtheorem{definition}[theorem]{Definition}
+\newtheorem{problem}[theorem]{Problem}
+\newtheorem{remark}[theorem]{Remark}
+\newtheorem{example}[theorem]{Example}
+\newtheorem{conjecture}[theorem]{Conjecture}
+\newtheorem{algorithm}[theorem]{Algorithm}
+
+\newcommand{\RP}{\mathbb{RP}}
+\newcommand{\RR}{\mathbb{R}}
+\newcommand{\QQ}{\mathbb{Q}}
+\newcommand{\PP}{\mathbb{P}}
+\newcommand{\CC}{\mathbb{C}}
+\newcommand{\ZZ}{\mathbb{Z}}
+\newcommand{\NN}{\mathbb{N}}
+
+\newcommand{\eg}{{\em e.g.}}
+\newcommand{\ie}{{\em i.e.}}
+
+\def\note#1{\textcolor{blue}{#1}}
+
+\title{{\bf The loss function of 1D ReLU networks}}
+\author{}
+\date{}
+
+\begin{document}
+\maketitle
+
+Let $f(\theta,x) = \sum_{i=1}^m c_i [a_ix + b_i]_+$ be a 1D two-layer ReLU
+network, where $\theta = (a_i,b_i,c_i)$, and $x, f(\theta,x) \in \RR$. If our
+goal is to approximate some function $h:\RR\rightarrow \RR$, we consider the
+loss
+
+\begin{equation}\label{eq:loss_uniform}
+L(\theta) = \int_{x \in [0,1]} |f(\theta,x) - h(x)|^2 dx
+\end{equation}
+
+This assumes that the data is sampled uniformly in $[0,1]$. More generally, we
+could use a discrete measure on $x$ to describe the empirical loss (needs to be
+worked out).
+
+We write the gradient $\nabla_p L(\theta)$ with respect to some parameter
+$p \in \{a_i,b_i,c_i\}$ as
+
+\begin{equation}\label{eq:gradient}
+\nabla_p L(\theta) = 2 \int_{x \in [0,1]} \partial_p f(\theta,x) \cdot (f
+(\theta,x)-h (x)) dx.
+\end{equation}
+
+% We would like to say that, under reasonable assumptions, $\nabla_p L(\theta) =
+% 0$ if and only if $f(\theta,x) = h(x)$. 
+We observe that
+
+\begin{equation}\label{eq:gradients_params}
+\begin{aligned}
+& \partial_{a_i} f(\theta,x) = c_i x \cdot \mathds{1}
+[a_i x
++ b_i \ge 0],\\
+& \partial_{b_i} f(\theta,x) = c_i \cdot \mathds{1}
+[a_i x
++ b_i \ge 0],\\
+& \partial_{c_i} f(\theta,x) = [a_i x + b_i]_+ = (a_i x + b_i) \cdot \mathds{1}
+[a_i x
++ b_i \ge 0].\\
+\end{aligned}
+\end{equation}
+
+We now let $\theta^* = (a_i,b_i,c_i)$ be a critical point $\nabla L(\theta^*)
+= 0$ such that $c_i \ne 0$ for all $i$. Using~\eqref{eq:gradients_params},
+this means that
+
+\begin{equation}\label{eq:integral_conditions}
+\forall~i~,~\int_{\{a_i x + b_i \ge 0\}\cap [0,1]} r(\theta^*,x) dx = \int_{\{a_i x + b_i
+\ge 0\} \cap [0,1]} x r
+(\theta^*,x) dx = 0,
+\end{equation}
+where $r(\theta,x) = f(\theta,x) - h(x)$. To simplify the analysis, we make
+the assumption that $h(x)$ is a \emph{linear} function $h(x) = \alpha x +
+\beta$. In this case, $r (\theta^*,x)$ is a continuous piecewise linear
+function $\RR \rightarrow \RR$, and it is uniquely defined by the values $s_i
+= r(\theta^*,e_i)$, for $i=1,\ldots,m$ at the ``control points'' $e_i =
+-b_i/a_i$, and $s_0 = r (\theta^*,0)$ and $s_{m+1} = r(\theta^*,1)$. Here we
+assume that the control points $e_i$ are ordered increasingly $e_i< \ldots <
+e_{m}$ and all lie in the interval $[0,1]$ (if this is not the case, we
+restrict ourselves to the points that do). We observe
+that~\eqref{eq:integral_conditions} imposes linear conditions on the values
+$s_0,\ldots,s_{m+1}$ (see Lemma below). Roughly speaking, we expect $2m$
+linear conditions on $m+2$ variables, so the only solution should be for $s_0
+=\ldots = s_{m+1} = 0$. To make this argument precise, we need to spell out
+the exact form of the linear conditions on $s_i$.
+
+\begin{lemma}\label{lemma:coeffs_uniform} Let $g: [e_0,e_{k+1}] \rightarrow
+\RR$ be a continuous piecewise linear function, defined by control points $e_0
+< \ldots < e_{k+1}$ and conditions $g(e_i) = s_i$ for $i=0,\ldots,k+1$. Then
+\begin{equation}
+\int_{[e_0,e_{k+1}]} g(x) dx = 0 \Leftrightarrow ({e_1 - e_0})s_0 + \sum_
+{i=1}^k ({e_
+{i+1} - e_{i-1}}) s_i + ({e_{k+1} - e_k}) s_{k+1} = 0
+\end{equation}
+\begin{equation}
+\begin{aligned}
+&\int_{[e_0,e_{k+1}]} x g(x) dx = 0 \\
+&\Leftrightarrow
+\left(({-2e^2_{0} +  e_{1}e_0 + e_{1}^2})\right) s_0 + \sum_{i=1}^k 
+\left(({e_{i+1}^2 + e_{i+1} e_i - e_i e_{i-1} - e_{i-1}^2})\right)s_i + 
+\left(({2e^2_{k+1} -  e_{k+1}e_k - e_k^2})\right) s_{k+1} = 0
+\end{aligned}
+\end{equation}
+
+Furthermore, these two conditions are always linearly independent.
+\end{lemma}
+
+\begin{proof} We can write $g$ explicitly as
+\begin{equation}
+g(x)|_{e_i \le x \le e_{i+1}} = s_{i+1} \left(\frac{x-e_i}{e_{i+1}-e_i}\right)
++ s_ {i} \left(1 -
+\frac{x-e_i}{e_{i+1}-e_i}\right) = (s_{i+1} - s_i)\frac{x - e_i}{e_{i+1} - e_i}
++ s_i.
+\end{equation}
+We thus have that
+\begin{equation}
+\int_{e_i}^{e_{i+1}} g(x) dx = \frac{s_{i+1} + s_i}{2} (e_{i+1} - e_i) = s_i
+\frac{e_{i+1} - e_i}{2} + s_{i+1}\frac{e_{i+1} - e_i}{2}
+% \left[s_{i+1} \left(\frac{(x-e_i)^2}{2(e_
+% {i+1}-e_i)}\right)
+% + s_ {i} \left(x -
+% \frac{(x-e_i)^2}{2(e_{i+1}-e_i)}\right)\right]^{e_{i+1}}_{e_i}.
+\end{equation}
+\begin{equation}
+\begin{aligned}
+\int_{e_i}^{e_{i+1}} x g(x) dx &= \left[\frac{s_{i+1} - s_i}{e_{i+1} -
+e_i}\left(\frac{1}{3}x^3 -
+\frac{e_i}
+{2} x^2 \right) - \frac{s_i}{2} x^2\right]^{e_{i+1}}_{e_i} \\
+&= \frac{s_{i+1} - s_i}{e_{i+1} -
+e_i} \left(\frac{e_{i+1}^3}{3} - \frac{e_{i+1}^2e_i}{2}\right) +
+\frac{s_{i+1} - s_i}{e_{i+1} -
+e_i} \frac{e_{i}^3}{6} - (e_ {i+1}^2 - e_ {i}^2)\frac{s_i}{2}\\
+% &= \left(\frac{1}{e_{i+1} -
+% e_i} \left(\frac{e_{i+1}^3}{3} - \frac{e_{i+1}^2 e_i}{2} - \frac{e_i^3}
+% {6}\right)\right) s_{i+1}
+% + \left(\frac{1}{e_{i+1} -
+% e_i} \left(\frac{e_{i+1}^3}{3} - \frac{e_{i+1}^2 e_i}{2} - \frac{e_i^3}
+% {6}\right) - \frac{e_{i+1}^2 - e_i^2}{2}\right) s_i\\
+&= \left(\frac{2e^3_{i+1} -  3 e^2_{i+1}e_i + e_i^3}{6(e_{i+1} -
+e_i)} \right) s_{i+1}
++ \left(\frac{-e^3_{i+1} +  3 e_i^2 e_{i+1} - 2e_i^3}{6(e_{i+1} -
+e_i)} \right) s_i\\
+&= \left(\frac{2e^2_{i+1} -  e_{i+1}e_i - e_i^2}{6}\right) s_{i+1} + 
+\left(\frac{-2e^2_{i} +  e_{i+1}e_i + e_{i+1}^2}{6}\right) s_i.
+\end{aligned}
+\end{equation}
+To prove the last statement, we consider the coefficients of $s_0$ and
+$s_{k+1}$. These form a $2\times 2$ matrix whose determinant is
+\[
+(e_m - e_{m+1})(e_m + 2e_{m+1} - e_1 - 2e_1 )(e_1-e_0).
+\]
+This expression is always nonzero if $e_0 < e_1 < e_m < e_{m+1}$.
+
+\end{proof}
+
+
+
+We deduce that there exist two $m \times ({m+2})$ matrices $M_1$ and $M_2$
+that depend on control points $E = (e_0,\ldots,e_{m+1})^T$ (and hence on the
+parameters $\theta$) such that the two equations~
+\eqref{eq:integral_conditions} are equivalent to $M_1 S = 0$ and $M_2 S = 0$
+where $S = (s_0,\ldots,s_{m+1})^T$. Furthermore, each row of $M_1$ is either
+of the form
+
+\[
+\begin{bmatrix}
+u(e_{0},e_{1}) & u(e_{0},e_{1}) + u(e_{1},e_{2}) & \ldots & u(e_{i-1},e_{i}) + u
+(e_{i},e_{i+1}) & u(e_{i},e_{i+1})& 0 & \ldots & 0\\
+\end{bmatrix},
+\]
+
+or of the form
+
+\[
+\begin{bmatrix}
+0 & \ldots & 0 & u(e_{i},e_{i+1}) & u(e_{i},e_{i+1}) + u(e_{i+1},e_{i+2}) &
+\ldots & u(e_{m-1},e_{m}) + u(e_{m},e_{m+1}) & u(e_{m},e_{m+1})\\
+\end{bmatrix},
+\]
+where $u(e_i,e_j) = {e_j - e_i}$. Similarly,
+each row of $M_2$ is of the form
+
+\[
+\begin{bmatrix}
+-v(e_{0},e_{1}) & v(e_{1},e_{0}) - v(e_{1},e_{2}) & \ldots & v(e_{i},e_{i-1}) -
+v(e_{i},e_{i+1}) & v(e_{i+1},e_{i})& 0 & \ldots & 0\\
+\end{bmatrix},
+\]
+
+or of the form
+
+\[
+\begin{bmatrix}
+0 & \ldots & 0 & -v(e_{i},e_{i+1}) & v(e_{i},e_{i-1}) - v(e_{i},e_{i+1}) &
+\ldots & v(e_{m},e_{m-1}) - v(e_{m},e_{m+1}) & v(e_{m+1},e_{m})\\
+\end{bmatrix},
+\]
+where $v(e_i,e_j) = {2e_i^2 - e_i e_j - e_j^2}$.
+
+
+\begin{lemma} Let $M$ be the $2m \times (m+2)$ matrix obtained by stacking
+$M_1$ and $M_2$. Then $M$ has rank $m+2$ unless $M_1$ and $M_2$ are triangular
+(which happens if the signs of $a_i$ are all the same), in which case it has
+rank $m+1$.
+\end{lemma}
+\begin{proof}(Needs to be cleaned up!) The proof is by induction. We first
+show that the rank of $M$ is $m+1$ if $M_1$ and $M_2$ are both triangular
+(wlog, lower). If $m = 1$ (one neuron), then the $2\times 3$ matrix $M$ has
+rank $2$ by the previous Lemma. We now assume that $M$ has size $2m + (m+2)$.
+We can apply elementary row operations using the first and $(m+1)$-th rows to
+make the first element of all other rows zero, and to make each of the
+matrices $M_1$ and $M_2$ block diagonal with lower right $(m-1) \times (m+1)$
+block of the same form and the upper right $1\times 1$ block non-zero. Using
+the inductive hypothesis, this shows that $M$ has rank $m+1$. We now assume
+that $M_1$ and $M_2$ are not both triangular. The base case is for $m=2$.
+There are two possible patterns:
+\begin{equation}
+M = \begin{bmatrix} 
+* & * &  & \\
+  &  & * & *\\
+* & * &  & \\
+  &  & * & *\\
+\end{bmatrix}, \mbox{ or }
+M = \begin{bmatrix} 
+& * & * & *\\
+*  & * & * & \\
+& * & * & *\\
+*  & * & * & \\
+\end{bmatrix}.
+\end{equation}
+The first option has rank $4$ because of the previous Lemma. We can show that
+the second option is NOT always invertible! See below.
+
+We now turn to the inductive step. Let us assume that that the $k$-th row of
+$M$ is the first row with pattern $[* \, * \, \ldots \, * \, 0 \ldots 0]$
+(such row necessarily exists). Then we can reduce $M$ to the form
+\begin{equation}
+\begin{bmatrix} 
+ - & M_1^a & - & * & * \\
+0 & 0 & - & M_1^b & - \\
+ - & M_2^a & - & * & * \\
+0 & 0 & - & M_2^b & - \\
+\end{bmatrix}.
+\end{equation}
+Here $M_1^a$ and $M_2^a$ have size $k \times (k+2)$, while $M_1^b$ and $M_2^b$
+have size $h \times (h+2)$ where $k + h = m$ (and $M_i^a$ is of the same type
+as of $M_i$). Using the inductive hypothesis, we have that the columns
+corresponding to $M_i^a$ span a space $V^a$ of dimension $k+1$ or $k+2$, and
+similarly the columns corresponding to $M_i^b$ span a space $V^b$ of dimension
+$h+1$ or $h+2$. If these two dimensions are $k+2$ and $h+2$, then the total
+rank is $h+k+2 = m+2$. If $\dim V^a = k+1$, then $M_i^a$ are lower-triangular,
+and their last column is zero. If $\dim V^b = h+2$, then this implies again
+that the rank of $M$ is $m+2$. Finally, if also $\dim V^b = h+1$, then $M_i^b$
+are necessarily upper triangular (otherwise $M_i$ would have been triangular).
+This implies that the two shared columns are zero, and the rank of $M$ is
+$m+2$.
+\end{proof}
+
+
+We now assume that data points are sampled according to a distribution $x \sim
+\mu(x)$. The loss function~\eqref{eq:loss_uniform} becomes
+\begin{equation}\label{eq:loss_measure}
+L_\mu(\theta) = \int_{x \in [0,1]} |f(\theta,x) - h(x)|^2 d\mu(x).
+\end{equation}
+If $\mu$ is a uniform discrete distribution over $x_1,\ldots,x_N \in [0,1]$,
+we have that $L_\mu(\theta)$ is simply the empirical loss $L_\mu(\theta) =
+\frac 1 N \sum |f(\theta,x_i) - h(x_i)|^2$. The conditions for $\nabla L_\mu
+(\theta^*) = 0$ are the same as in~\eqref{eq:integral_conditions} by using
+integrals over $\mu(x)$. The following is a more general version of
+Lemma~\ref{lemma:coeffs_uniform}.
+
+
+\begin{lemma}\label{lemma:coeffs_general} Let $g: [e_0,e_{k+1}] \rightarrow
+\RR$ be a continuous piecewise linear function, defined by control points $e_0
+< \ldots < e_{k+1}$ and conditions $g(e_i) = s_i$ for $i=0,\ldots,k+1$. If
+$p(x)$ is any function of $x$, then
+\begin{equation}
+\int_{[e_0,e_{k+1}]} p(x) g(x) dx = 0 \Leftrightarrow \alpha_0 s_0 + \sum_
+{i=1}^k (\alpha_i + \beta_{i-1})s_i + \beta_k s_{k+1} = 0,
+\end{equation}
+where $\alpha_i = \frac{1}{e_{i+1}-e_i} \int_{e_i}^{e^{i+1}} p(x)(e_{i+1} - x)
+d\mu (x)$ and $\beta_i = \frac{1}{e_{i+1}-e_i} \int_{e_i}^{e^{i+1}} p(x)(x -
+e_i) d\mu (x)$.
+\end{lemma}
+\begin{proof} As before we have that
+\begin{equation}
+g(x)|_{e_i \le x \le e_{i+1}} = s_{i} \left(\frac{e_{i+1} - x}{e_
+{i+1}-e_i}\right)
++ s_ {i+1} \left(\frac{x- e_i}{e_
+{i+1}-e_i} \right),
+\end{equation}
+\begin{equation}
+\begin{aligned}
+\int_{e_i}^{e_{i+1}} p(x) g(x) d\mu(x) &= \frac{s_i}{e_
+{i+1}-e_i} \int_{e_i}^{e_{i+1}} p(x)(e_{i+1} - x) d \mu(x) +
+\frac{s_{i+1}}{e_{i+1}-e_i} \int_{e_i}^{e_{i+1}} p(x)(x - e_i) d \mu(x)\\[.4cm]
+& = \alpha_i s_i + \beta_i s_{i+1}.
+\end{aligned}
+\end{equation}
+\end{proof}
+
+As before, we are interested in linear conditions on $s_0,\ldots,s_{m+1}$ such
+that
+
+\begin{equation}\label{eq:integral_conditions_2}
+\forall~i~,~\int_{\{a_i x + b_i \ge 0\}} r(\theta^*,x) d\mu(x) = \int_
+{\{a_i x + b_i
+\ge 0\}} x r
+(\theta^*,x) dx = 0.
+\end{equation}
+
+These are linear conditions provided by Lemma~\ref{lemma:coeffs_general} with
+$p(x) = 1$ and $p(x) = x$. We collect the conditions in matrices $M_1, M_2$ of
+size $m \times (m+2)$. Rows of these matrices are of two forms
+
+\[
+\begin{bmatrix}
+    \alpha_0 & \alpha_1 + \beta_0 & \ldots & \alpha_k + \beta_{k-1} & \beta_k &
+    0 & \ldots &0
+\end{bmatrix}
+\]
+
+\[
+\begin{bmatrix}
+    0 & \ldots & 0 & \alpha_{k-1} & \alpha_k + \beta_{k-1} & \ldots & \alpha_m
+    + \beta_{m-1} & \beta_{m}
+\end{bmatrix},
+\]
+
+For an induction such as the one sketched above, we need to look at the rank
+of the two base cases:
+
+
+\begin{equation}\label{eq:base_cases}
+M^a = 
+\begin{bmatrix}
+    \alpha_0 & \beta_0 & 0 & 0 \\
+    0 & 0 & \alpha_2 & \beta_2 \\
+    \alpha_0' & \beta_0' & 0 & 0 \\
+    0 & 0 & \alpha_2' & \beta_2' \\
+\end{bmatrix},
+\quad \mbox{ or } \quad
+M^b = 
+\begin{bmatrix}
+    0 & \alpha_1 & \alpha_2 + \beta_1 & \beta_2 \\
+    \alpha_0 & \alpha_1 + \beta_0 & \beta_1 & 0 \\
+    0 & \alpha_1' & \alpha_2' + \beta_1' & \beta_2' \\
+    \alpha_0' & \alpha_1' + \beta_0' & \beta_1' & 0 \\
+\end{bmatrix}.
+\end{equation}
+
+
+When $d \mu$ is the uniform measure we have that
+\begin{equation}
+\begin{aligned}
+\alpha_i = e_{i+1} - e_{i}, \quad \beta_i = e_{i+1} - e_{i}, \qquad \alpha_i' =
+-2e^2_{i} +  e_{i}e_{i+1} + e_{i+1}^2, \quad \beta_i' = {2e^2_{i+1} -
+e_{i+1}e_i - e_i^2}.
+\end{aligned}
+\end{equation}
+
+Using these expressions, one can verify that the determinants of the two
+matrices in~\eqref{eq:base_cases} are respectively
+
+\[
+\begin{aligned}
+&\det(M^a) =  (e_2 - e_3)^3(e_1 - e_0)^3\\
+&\det(M^b) = (e_3 - e_{2})(e_3 - e_{1})(e_{1}-e_0)(e_2 - e_{0}) (- e_{0} e_{1} + 4
+e_{1}^{2} - 7 e_{1} e_{2} + 4 e_{2}^{2} + e_{0} e_{3} -  e_{2} e_{3})
+\end{aligned}
+\]
+
+
+Setting $e_0 = 0,e_1 = 1/3, e_2 = 1/3, e_3 = 1$, we have that $\det(M^b) = 0$, and the vector $[1,-1,1,-1]^T$ lies in its null-space. For example, a critical point with non-zero residual is for $h(x) = 6x - 3$ and
+
+\[
+f(\theta,x) = 4 \left[ x - \frac 1 3 \right]_+ + 4 \left[ - x + \frac 2 3
+\right]_+
+\]
+
+\paragraph{Higher dimensions.} We now consider a more general shallow ReLU
+network $f(\theta,x) = C[Ax + b]_+$, where $x \in \RR^n$, $A \in \RR^{d \times
+n}$, $b \in \RR^d$, $C \in \RR^{m \times d}$. We can write this map
+as 
+
+\begin{equation}
+f(\theta,x) = \begin{bmatrix} f_1(\theta,x) \\
+\vdots \\
+f_m(\theta,x)
+\end{bmatrix} =  \begin{bmatrix} \sum_{i=1}^d c_{1i} [a_{i:} x + b_i]_+\\
+    \vdots\\
+    \sum_{i=1}^d c_{mi} [a_{i:} x + b_i]_+
+\end{bmatrix}.
+\end{equation}
+
+As before, we have that
+
+\begin{equation}\label{eq:loss_uniform_ndim}
+L(\theta) = \int_{x \in [0,1]^n} \|f(\theta,x) - h(x)\|^2 d\mu(x) = 
+\sum_{i=1}^m \int_{x \in [0,1]^n} |f_i(\theta,x) - h_i(x)|^2 d\mu(x),
+\end{equation}
+
+and
+
+\begin{equation}\label{eq:gradient_ndim}
+\nabla_p L(\theta) = 2 \sum_{i=1}^m \int_{x \in [0,1]^n} \partial_p f_i
+(\theta,x)
+\cdot (f_i(\theta,x)-h_i(x)) d\mu(x).
+\end{equation}
+
+
+We also have that 
+
+\begin{equation}\label{eq:gradients_params_ndim}
+\begin{aligned}
+& \partial_{a_{ij}} f_k(\theta,x) = c_{ki} x_j \cdot \mathds{1}
+[a_{i:} x
++ b_i \ge 0],\\
+& \partial_{b_i} f_k(\theta,x) = c_{ki} \cdot \mathds{1}
+[a_{i:} x
++ b_i \ge 0],\\ & \partial_{c_{ki}} f_k(\theta,x) = [a_{i:} x + b_i]_+ =
+  (a_{i:} x + b_i) \cdot
+\mathds{1} [a_{i:} x + b_i \ge 0].\\
+\end{aligned}
+\end{equation}
+
+This means that
+
+\begin{equation}\label{eq:gradients_ndim}
+\begin{aligned}
+&\nabla_{a_{ij}} L = 0 \Leftrightarrow \sum_{k=1}^m c_{ki} \int_{x \in \{a_{i:} x
++ b_i \ge 0\}}
+x_j r_k(\theta,x) d\mu(x) = 0\\
+&\nabla_{b_{i}} L = 0 \Leftrightarrow \sum_{k=1}^m c_{ki} \int_{x \in \{a_{i:} x
++ b_i \ge 0\}} r_k(\theta,x) d\mu(x) = 0 \\
+&\nabla_{c_{ki}} L = 0 \Leftrightarrow
+  \sum_{k=1}^m \int_{x \in \{a_{i:} x
++ b_i \ge 0\}} (a_{i:} x + b_i) r_k(\theta,x) d\mu(x) = 0
+\end{aligned}
+\end{equation}
+
+We now write
+
+\begin{equation}
+\begin{aligned}
+&I = \begin{bmatrix}
+  \int_{x \in \{a_{i:} x
++ b_i \ge 0\}} x_j r_k(\theta,x)d\mu(x)
+\end{bmatrix}_{jik} \in \RR^{n \times d \times m},\\
+&J = \begin{bmatrix}
+  \int_{x \in \{a_{i:} x
++ b_i \ge 0\}} r_k(\theta,x)d\mu(x)
+\end{bmatrix}_{ik} \in \RR^{d\times m}.
+\end{aligned}
+\end{equation}
+This way, \eqref{eq:gradients_ndim} can be written as
+
+\begin{equation}
+\begin{aligned}
+&\nabla_{a_{ij}} L = 0 \Leftrightarrow  I_{ji:} \cdot c_{:i} = 0,\\
+&\nabla_{b_{i}} L = 0 \Leftrightarrow J_{i:} \cdot c_{:i} = 0,\\
+&\nabla_{c_{ki}} L = 0 \Leftrightarrow I_{:ik} \cdot a_{i:} + b_iJ_{ik}.
+\end{aligned}
+\end{equation}
+
+In other words, $\nabla L = 0$ if and only if
+
+\begin{equation}
+\begin{aligned}
+& [(I_{jik})(C_{ki'})]_{i=i'} = 0 \in \RR^{n \times d},\\
+& [(J_{ik})(C_{ki'})]_{i=i'} = 0 \in \RR^d,\\
+& [(A_{ij})(I_{ji'k})]_{i=i'} + [(b_i)(J_{i'k})]_{i=i'} = 0 \in \RR^{d\times
+m}.\\
+\end{aligned}
+\end{equation}
+
+Assuming $m=1$ (so $I \in \RR^{n \times d}, J \in \RR^d$), these conditions
+become
+
+\begin{equation}
+\begin{aligned}
+& [(c_i I_{ji})] = 0 \in \RR^{n \times d},\\
+& [(c_i J_{i})] = 0 \in \RR^d,\\
+& [(A_{ij}) (I_{ji'})]_{i=i'} + [(b_i J_{i})] = 0 \in \RR^{d\times
+m}.\\
+\end{aligned}
+\end{equation}
+
+(Fix notation!) Assuming $c_i \ne 0$, these conditions are equivalent to $I = 0$
+and $J = 0$. This gives a total of $d(n+1)$ conditions (this agrees with the previous $2m$).
+
+We now write
+
+\[
+r(\theta,x) = \sum_{i=1}^d k_i \varphi_i(x) \mathds{1} [\varphi_i
+(x) \ge 0]
+\]
+
+Note that if $p(x)$ is any scalar function, then
+
+\[
+\int_{x \in \{\varphi_i(x) \ge 0\}} p(x) r(\theta,x) d \mu(x) = 
+\sum_j k_j \int_{x \in \{\varphi_i(x) \ge 0, \varphi_j(x) \ge 0\}}
+\varphi_j(x) p(x) d\mu(x)
+\]
+
+We thus get $d(n+1)$ conditions on $d$ variables (entries of $I$ and $J$ are linear in the $k_i$). In general, we expect this to imply $k_j = 0$.
+
+Summary: under some hypotheses, the gradient vanishes only if the residual is zero. How can this happen? Which parameter values are more likely?
+
+\end{document}

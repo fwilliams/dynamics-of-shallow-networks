@@ -1,0 +1,504 @@
+
+\section{Tangent Kernels and Gradient Flows}
+Let $C: H \rightarrow \RR$ be a smooth function on a Hilbert space $H$ (for
+our purposes, $H$ is either a space of functions or a Euclidean space
+$\RR^m$). Inside $H$, we consider a subset $M_\Phi = \{\Phi (\theta) \, | \,
+\theta \in \RR^{n}\}$ defined as the image a smooth map $\Phi: \RR^ {n} \rightarrow
+H$. The map $\Phi$ is not necessarily injective, so that each $z \in M_\Phi$ may
+have many different ``lifts'' $\theta$ for which $\Phi(\theta) = z$. We
+are interested in solving the optimization problem
+
+\begin{equation}
+\min_{z \in M_\Phi} C[z]
+\end{equation}
+
+by using the parameterization provided by $\Phi$ and following the gradient
+flow of $L(\theta) = C[\Phi(\theta)]$ in $\RR^n$. If $d \Phi(\theta):
+\RR^{n} \rightarrow H$ is the differential of $\Phi$ at $\theta$, then for
+every parameter $\theta$, we define a linear map $K(\theta): H
+\rightarrow H$ as
+
+\[
+K(\theta) = d \Phi(\theta) \circ d \Phi(\theta)^*: H \rightarrow
+H
+\]
+
+where $d \Phi(\theta)^*$ denotes the adjoint of $d \Phi(\theta)$. Since $K$ is self-adjoint, it also defines a positive semidefinite bilinear map $H
+\times H \rightarrow \RR$. If $H = \RR^m$, then $K(\theta)$ can be identified
+with $(m \times m)$-matrix $J_\Phi(\theta) J_\Phi^T(\theta)$ where $J_\Phi(\theta)$ is
+the jacobian of $\Phi$. The operator $K$ is known as the~\emph{tangent kernel}
+(although it may not be positive definite if $d\Phi$ is not surjective)~\cite{NTKJacot,chizat2018note}.
+
+\begin{lemma} If $\theta(t)$ is an integral curve for the gradient vector
+field $\nabla L$ in $\RR^{d_\theta}$, then corresponding curve $z(t) =
+\Phi(\theta(t))$ in $H$ satisfies
+\begin{equation}\label{eq:tangent_kernel}
+\frac{d z}{dt}(t) = K(\theta(t)) \,\, \nabla C (\Phi(\theta(t))).
+\end{equation}
+where $\nabla C$ denotes the gradient of $C$ inside $H$.
+\end{lemma}
+
+
+From this lemma, we see that the tangent kernel can be viewed as a
+``preconditioning map'' that modifies the gradient $\nabla C(z)$ in the space $H$ to correspond to the dynamics of gradient flow in the
+parameter $\theta \in \RR^n$. On the other hand, we cannot in general
+use~\eqref{eq:tangent_kernel} to ``forget'' the parameterization and describe
+the dynamics purely inside $H$, given that $K(\theta)$ cannot be uniquely
+associated with points $z$ in $H$, since it is generally not fixed
+in the set of lifts $\{\theta \, | \, \Phi(\theta) = z\}$. 
+
+\begin{remark} If the tangent kernel $K(\theta(t))$ hardly changes for a trajectory $\theta(t), t \ge 0$ then~\eqref{eq:tangent_kernel} can be approximated by
+\begin{equation}
+    \frac{d z}{dt}(t) = K(\theta(0)) \,\, \nabla C (\Phi(\theta(t))).
+\end{equation}
+The regime where this approximatation is valid is referred to as \emph{lazy training} in~\cite{chizat2018note}. It is shown in~\cite{NTKJacot} that if $\Phi$ represents the parameterization of a neural network, then lazy training occurs as the widths of the network go to infinity and for appropriate initializations (using a normalization by $1/\sqrt{m_\ell}$ where $m_\ell$ is the width of a layer). \note{If we use this, explain more?}
+\end{remark}
+
+note{Qualitative description of ODE.}
+
+
+
+We now discuss how the matrix $K(\xi)$ applied to the vector field $\nabla \tilde{L}$ yields different types of neuron trajectories.
+% $(\beta a^2+ \beta b^2 + \alpha c^2, (a,b))$ and $(\alpha c^2, (-b,a))$, which correspond to radial and tangential components of $(u, v)$. From this we deduce that
+
+\begin{lemma}\label{le:pw_continuous}
+The gradient in the reduced parameter space, $\nabla \tilde{L}$ is piecewise linear with discontinuities occuring precisely along radial lines corresponding to samples, i.e. $u = -x_i v$ for $i = 1, \ldots s$.
+\end{lemma}
+
+\begin{proof}
+\note{Francis: Clean up the proof I have on paper and transcribe it. We will put this in the appendix since the lemma is sort of intuitive anyway.}
+\end{proof}
+
+
+
+When $\delta \ll -\|\xi\|$, then $c^2 \ll a^2 + b^2$, and the trajectory of neurons in the $(u, v)$-plane is mostly radial away or towards the origin (\todo{Figure \ref{fig:todo}}).
+
+In the extreme case, where $\alpha c^2 = 0$, then the inner layer parameters, $a$, and $b$ remain stationary. Thus, the radial regime is equivalent to fixing the alternant matrix $M(a, b)$ and optimizing over the parameters, $c$. We can then view the function $f(x)$ as as a linear combination of basis functions $[a_i x + b_i]_+$ with coefficients $c_i$. We note that in radial training, the boundaries of linear pieces in the domain do not change. 
+
+To study the dynamics of radial training, we can rewrite the function $f$ in terms of a fixed kernel $K(x, y)$ which depends only on the parameters $a$ and $b$. As shown in \cite{NTKJacot}, the finite kernel associated with a neural network converges as the number of weights grows large. Since our finite kernel $K$ is fixed in radial training (due to $a$ and $b$ being stationary), we can view the finite kernel as an approximation of the infinite one. By analyzing the properties of the infinite kernel, we can understand the behavior of the finite one.
+
+
+
+\paragraph{Dynamics of Gradient Flow in Radial Training}
+We now consider the dynamics of gradient flow in the radial regime.  If we minimize the loss, $\frac{1}{2}||Mc - y||^2$ with gradietn flow, we have that $c(t)$ follows the ODE \note{(This derivation is similar to \cite{NTKJacot})}
+
+\begin{equation}
+\begin{aligned}
+    \partial_t c(t) &= -\nabla_c \frac{1}{2} ||M c(t) - y||^2\\
+                    &= -(M^T M c(t) - M^T y)
+\end{aligned}
+\end{equation}
+
+and $f(x, t) = Mc(t)$ evolves according to
+
+\begin{equation}
+\begin{aligned}
+\partial_t f(x, t) &= M \partial_t c(t)\\
+                   &= M M^T y - M M^T Mc(t)\\
+                   &= Ky - K f(x, t)
+\end{aligned}
+\end{equation}
+
+which is a separable ODE with solutions of the form
+
+\begin{equation}
+    f(x, t) \propto y + \exp{(-K)} \mathds{1}t
+\end{equation}
+
+Decomposing $K$ into its eigenbasis we can write the evolution of the residual as
+
+\begin{equation}
+    r(t) = f(t) - y \propto \sum_{j=1}^s \exp{(-t\lambda_i \mathbf{e_i})}
+\end{equation}
+
+where $(\lambda_i, \mathbf{e_i})$ are $i^\text{th}$ eigenvalue/eigenvector pair of $K$. In the overparameterized case, this gradient flow will minimize the least squares loss \eqref{eq:lsq_overparameterized} for initializations of $c$ with small norm. Observe that the eigenfunctions of $K$ with large eigenvalues decay first which acts as a regularizer when stopping gradient descent early as these eigenfunctions typically correspond to lower frequency features of the function being fit. \note{(An interesting practical fact is that we can perturb the kernel by $\epsilon I$ and solve the linear system to get smoother solutions)}
+
+
+Observe that $(M M^T)_{ij}$ can be written as the inner product 
+
+\begin{equation}\label{eq:lsq_kernel}
+(M M^T)_{ij} = \langle [a x_i + b]_+, [a x_j + b]_+ \rangle = K(x_i, x_j)
+\end{equation}
+
+where $K(x_i, x_j)$ is a positive definite kernel if $rank(M) = s$. Denoting the matrix, $M M^T$ as $K$ and observing that $f(x_i) = (Mc)_i$, we can write
+
+\begin{equation}
+\begin{aligned}
+Mc &= f(x)\\
+   &= M M^T (M M^T)^{-1} y\\
+   & = K K^{-1}y\\
+   & = Kv
+\end{aligned}
+\end{equation}
+
+
+
+Functions of the form~\eqref{eq:ReLU1D} are \emph{continuous piecewise linear} (CPL). If $f$ is CPL, the extreme points of the intervals where $f$ is linear are called the \emph{knots}. For 1D functions, knots are a convenient way of visualizing the neurons of a function. Figure~\ref{fig:knots} shows an example of such a function and its knots. Assuming that $a_i \neq 0$ for all $i$, the knots are given by:
+
+\begin{equation}\label{eq:nodes}
+e_1 = -\frac{b_1}{a_1}, \ldots, e_m = -\frac{b_m}{a_m}.
+\end{equation}
+
+Indeed, these are the points where the operand inside a ReLU activation changes sign. Perhaps counterintuitively, the function space $\mathcal F$ is a strict subset of the space of CPL maps with $m$ knots, but it contains the set of CPL maps with $m-1$ knots \note{Lemma in sup mat?}.
+
+We denote the least squares loss in \eqref{eq:leastsquares} by
+\begin{equation}\label{eq:nnloss}
+    L(\theta) = \frac{1}{2}\sum_{j=1}^s ||r_j(\theta)||^2 \qquad r_j(\theta) = f_\theta(x_j) - y_j
+\end{equation}
+
+where $r_j(\theta)$ is the \emph{residual} at the sample $x_j$. In our setting, it is convenient to rewrite the evaluation of $f_\theta$ at the samples $x = (x_i)_{i=1}^s$ as the matrix product:
+
+\begin{equation}
+    f(x) = (M_x(a, b) c),
+\end{equation}
+
+where $M_x(a, b)$ is the \emph{alternant matrix} defined as
+
+\begin{equation}\label{eq:alternant_matrix}
+\begin{aligned}
+M_x(a, b) = 
+\begin{bmatrix} 
+    [a_1 x_1 + b_1\ge 0]_+ & \ldots & [a_m x_1 + b_m\ge 0]_+\\
+    \vdots                 &        & \vdots\\
+    [a_1 x_s + b_1\ge 0]_+ & \ldots & [a_m x_s + b_m\ge 0]_+\\
+\end{bmatrix} \in \RR^{s \times m}.
+\end{aligned}
+\end{equation}
+
+It is also convenient to define the \emph{activation matrix} whose entries are 1 or 0 depending on whether the operand of ReLU for a given neuron is active at a given sample
+\begin{equation}\label{eq:activation_matrix}
+\tau_x(a, b) = 
+\begin{bmatrix} 
+\mathds{1}[a_1 x_1 + b_1\ge 0] & \ldots & \mathds 1[a_m x_1 + b_m\ge 0]\\
+\vdots                         &        & \vdots\\
+\mathds{1}[a_1 x_s + b_1\ge 0] & \ldots & \mathds 1[a_m x_s + b_m\ge 0]\\
+\end{bmatrix} \in \{0,1\}^{s \times m}.
+\end{equation}
+
+We say that the network, $f_\theta$ is \emph{overparameterized} if there are more neurons than samples (i.e. $m > s$). We now show that under mild conditions in the overparameterized case, we can always achieve zero-loss.
+
+\begin{proposition} If $m > s$ and $\theta^*=(a^*, b^*, c^*)$ is a critical
+point for $L(\theta)$ such that $M_x(a^*, b^*) \in \RR^{m \times s}$ has maximal rank $s$, then
+necessarily $L_S(\theta^*) = 0$ (\ie, $f_{\theta^*}$ interpolates the
+samples).
+\end{proposition}
+
+\begin{proof} 
+    We consider the evaluation mapping
+    \begin{equation}
+    \Psi_x: \RR^{d_\theta} \rightarrow \RR^{s}, \qquad \theta \mapsto (f_\theta(x_1),\ldots,f_\theta(x_s)).
+    \end{equation}
+    If $m > s$ and $M_x(a^*,b^*)$ has full rank, then the evaluation map $\Psi_S$ is a
+    \emph{submersion} at $\theta^*$, that is, the Jacobian $J \Psi_x
+    (\theta^*)$ of $\Psi_x$ has full rank. Indeed, the last $m+1$ columns of $J\Psi_x(\theta^*)$ are exactly $M_x(a^*,b^*)$:
+    \begin{equation} J\Psi_x(\theta^*) = \begin{bmatrix} \frac{\partial
+    \Psi_x}{\partial \alpha}(\theta^*) & \frac{\partial \Psi_x}{\partial
+    c}(\theta^*)\end{bmatrix} =
+    \begin{bmatrix} \frac{\partial \Psi_x}{\partial \alpha}(\theta^*) &
+    M_x(a^*,b^*) \end{bmatrix} \in \RR^{s \times d_{\theta}}
+    \end{equation}
+    Finally, the fact that $J \Psi_S(\theta^*)$ has full rank implies that $f_{\theta^*}$
+    interpolates $S$ since
+    \begin{equation}
+    \nabla L(\theta^*) = (\Psi_x(\theta^*) - y)^T \cdot J \Psi_x(\theta^*)
+    = 0 \Rightarrow \Psi_x(\theta^*) = y.\end{equation}
+\end{proof}
+This proposition shows that either a critical point $\theta^*$ for $L$
+corresponds to and interpolant function $f_{\theta^*}$ (a global minimum for
+$L$), or the corresponding alternant matrix $M_x(a^*,b^*)$ must have
+non-maximal rank. If $m \gg s$, we expect $M_x (a,b)$ to have full rank for almost all choices of $\theta$.
+
+\begin{proposition} Let $e_1 \le \ldots \le e_m$ be the knots~\eqref{eq:nodes}
+for a network with parameters $\theta = (a,b,c)$. If $s<m$ and each interval $[-\infty, e_1],
+[e_1, e_2], \ldots, [e_m, \infty]$ contains at most one sample point $x_i$, then
+$M_x(a, b)$ has full rank. 
+% If we assume that $e_1 < \min (x_i)$ and that the
+    % corresponding neuron is ``active'' on the sample points, then $M_x(\alpha)$
+% has full rank if and only if any two adjacent intervals do not contain more
+% than two sample points.
+\end{proposition}
+
+\note{Cite other results on landscape in overparameterized regime}
+
+\begin{lemma} If $f_\theta = \Theta(\theta)$ has distinct nodes $e_1 < \ldots
+< e_m$, and if $\gamma_0,\ldots,\gamma_{m}$ denote the slopes of $f_\theta$ in
+$[-\infty, e_1],[e_1,e_2],\ldots,[e_m,\infty]$, then
+\begin{equation}
+\gamma_{i+1} - \gamma_i = sign(a_{i+1}) \cdot c_{i+1} a_{i+1}.
+\end{equation}
+\note{This lemma shows that neural nets are continuous which we mention above. I propose moving it to the supplemental and expanding a bit to spell out the continuity of neural net functions.}
+\end{lemma}
+
+
+\begin{lemma} \label{le:fixed_delta}
+If $\bm \theta(t) = (\bm a(t), \bm b(t), \bm c(t))$ is a solution of the integral flow \eqref{eq:gradient_flow}, then the quantities
+\begin{equation}
+\delta_i = c_i(t)^2 - a_i(t)^2 - b_i(t)^2, \quad i = 1, \ldots, m,
+\end{equation}
+remain constant for all $t$. In particular, given a reduced representation of a neuron $(u_i,v_i) = (|c_i|a_i,|c_i|b_i)$, we can recover the original neuron $(a_i,b_i,c_i)$ up to the sign of $c_i$, since
+\begin{equation}\label{eq:c_uv}
+    c_i^2 = \frac{\delta_i + \sqrt{\delta_i^2 + 4 (u_i^2 + v_i^2)}}{2}. 
+\end{equation}
+\end{lemma}
+\begin{proof} This follows from~\eqref{eq:derivative_equations} since
+\begin{equation}\label{eq:delta_i}
+\begin{aligned}
+\dot{\delta}_i &= 2 c_i \dot{c}_i - 2 a_i \dot{a}_i - 2 b_i \dot{b}_i \\
+               &= 2 c_i \nabla_{c_i} L - 2 a_{i} \nabla_{a_{i}} L - 2 b_i \nabla_{b_i} L \\
+               &= 0.
+\end{aligned}
+\end{equation}
+\end{proof}
+An important consequence of Lemma~\ref{le:fixed_delta} is that using the initialization parameters $\theta(t_0)$ we can uniquely ``lift'' a reduced neuron to a regular neuron, recovering recovering $(a_i,b_i, c_i)$ from $(u_i,v_i) = (|c_i| a_i, |c_i| b_i)$ up to the sign of $c_i$. Indeed, we have that
+
+\begin{equation}
+c_i^2 - \frac{u_i^2 + v_i^2}{c_i^2} = \delta_i
+\end{equation}
+
+which implies $c_i^4 - \delta_i c_i^2 - (u_i^2 + v_i^2) = 0$ so 
+
+\begin{equation}\label{eq:c_uv}
+    c_i^2 = \frac{\delta + \sqrt{\delta_i^2 + 4 (u_i^2 + v_i^2)}}{2} 
+\end{equation}.
+
+
+
+
+
+\subsection{From parameters to functions} 
+\note{Maybe this should be in the previous section?}
+
+We take a closer look at the function space $\mathcal{F}$ and its parameterization via $\theta \in \RR^{3m}$. 
+% We write $\Theta: \RR^{3m} \rightarrow \mathcal{F}$ for the map associating a parameter $\theta \in \RR^{3m}$ with the corresponding function $f_\theta \in \mathcal{F}$ as defined in \eqref{eq:ReLU1D}.
+An important observation is that this parameterization is \emph{not injective}: in addition to permuting the neurons, we can
+appropriately rescale the neurons by positive constants without affecting the image function.
+% It is easy to see that if $\Theta (\theta)$ does not belong to
+% $CPL_ {m-1}$ (which is true if the nodes~\eqref{eq:nodes} are distinct and
+% $a_i \ne 0$ for all $i$ then,
+% conversely, $\Theta(\theta) = \Theta(\theta')$ implies that up to permutation
+% $\theta' = \sigma_t(\theta)$ for some $t \in (\RR_+)^m$.
+For this reason, we introduce the following \emph{reduced representation} of a ReLU network:
+
+
+\begin{equation}
+f_\xi(x) = \sum_{i=1}^{m} \epsilon_i [u_i x + v_i]_+, \quad \epsilon_i \in
+\{-1,0,1\},
+\end{equation}
+
+where $\xi = (\epsilon \in \{-1, 0, 1\}^m, u \in \RR^m, v \in \RR^m)$.
+% This removes $m$ degrees of freedom from the parameter space (\note{not from what is said here, it just converts the degrees of freedom, $c$, from real numbers to +1, 0, -1}). 
+Any ReLU network $f_\theta$ is equivalent to a network in reduced form $f_\xi$ for $\xi = \pi(\xi)$, where
+
+\begin{equation}
+\pi(a_i,b_i,c_i) = (sign(c_i), |c_i| a_i, |c_i| b_i).
+\end{equation}
+
+% In other words, the reduced parameterization is equivalent to a change of variables after moving $c$ into the ReLU and only preserving its sign. 
+For our purposes, the main advantage of the reduced representation is that for a fixed set of sample points $\{x_1,\ldots,x_s\}$ the evaluation map $\xi \mapsto f_\xi (x_1), \ldots, f_\xi(x_s)$ is \emph{piecewise linear in the parameters $u$ and $v$}. Indeed, we have that
+% \begin{equation}
+%     \begin{bmatrix}
+%         f_\xi(x_1)\\
+%         \vdots\\
+%         f_\xi(x_s)
+%     \end{bmatrix}
+%     =
+%     \begin{bmatrix}
+%         \epsilon_1\tau_{11} x_1 & \epsilon_1 \tau_{11} & \epsilon_2 \tau_{12} x_1 & \epsilon_2 \tau_{12} & \ldots & \epsilon_m\tau_{1m} x_1 & \epsilon_m \tau_{1m}\\
+%         \vdots & & & & & & \vdots \\
+%         \epsilon_1 \tau_{s1} x_s & \epsilon_1 \tau_{s1} & \epsilon_2 \tau_{s2} x_s & \epsilon_2 \tau_{s2} & \ldots & \epsilon_m \tau_{sm}
+%         x_s & \epsilon_m \tau_{sm}\\
+%     \end{bmatrix}
+%     \begin{bmatrix} 
+%         u_1\\
+%         v_1\\
+%         \vdots\\
+%         u_m\\
+%         v_m
+%     \end{bmatrix}\\
+% \end{equation}
+
+
+\begin{equation}
+    \begin{bmatrix}
+        f_\xi(x_1)\\
+        \vdots\\
+        f_\xi(x_s)
+    \end{bmatrix}
+    =
+    \begin{bmatrix}
+        \epsilon_1\tau_{11} x_1 & \ldots & \epsilon_m\tau_{1m} x_1\\
+        \vdots & &  \vdots \\
+        \epsilon_1 \tau_{s1} x_s & \ldots & \epsilon_m \tau_{sm}
+        x_s\\
+    \end{bmatrix}
+    \begin{bmatrix} 
+        u_1\\\\
+        \vdots\\
+        u_m\\
+    \end{bmatrix}
+    + 
+        \begin{bmatrix}
+        \epsilon_1\tau_{11} & \ldots & \epsilon_m\tau_{1m}\\
+        \vdots & & &  \vdots \\
+        \epsilon_1 \tau_{s1} & \ldots & \epsilon_m \tau_{sm}
+        \\
+    \end{bmatrix}
+    \begin{bmatrix} 
+        v_1\\\\
+        \vdots\\
+        v_m\\
+    \end{bmatrix}
+\end{equation}
+where $\tau_{ij} = \tau_x(a, b)_{ij}$ is the activation matrix defined in~\eqref{eq:activation_matrix}. 
+
+The reduced representation is helpful to understanding how the parameters $\theta$ evolve during gradient flow \eqref{eq:scaled_gradient_descent}. In the next section, we show that we can uniquely ``lift'' the reduced parameters $\xi$ to the original ones $\theta$, allowing us to analyze the dynamics in the reduced parameter space and map our results back to the original one. We can plot the neurons in the reduced space in 2D (e.g. Figure~\ref{fig:phaseplot_eg}). Note that in these plots, the sample positions correspond to lines through the origin: Since the ``knot'' position (Figure~\ref{fig:knots}) of a neuron is simply ratio $\frac{a_i}{b_i} = \frac{u_i}{v_i}$, we can rescale a reduced neuron $(u, v)$ by a scalar without changing its position.
+
+
+
+
+
+
+
+\subsection{Dynamics of Gradient Flow} 
+We are interested in minimizing the approximation error~\eqref{eq:nnloss} using the gradient flow\footnote{More precisely, we should consider the \emph{subgradient flow}, since the loss $L(\theta)$ is not smooth. We address the discontinuities of the gradient in Section ....}
+
+\begin{equation}\label{eq:scaled_gradient_descent}
+% \dot a(t) &= -\alpha \nabla_a L(\theta),\\ \dot b(t) &= -\alpha \nabla_b L(\theta),\\
+% \dot c(t) &= -\beta\nabla_c L(\theta). 
+\partial_t \theta(t) = -\nabla L(\theta)
+\end{equation}
+
+We can express the gradient of the loss $L$ with respect to $a$, $b$, and $c$ as
+\begin{equation}\label{eq:derivative_equations}
+\begin{aligned}
+&\nabla_{a_i}L(\theta) = c_i \sum_{j=1}^s \tau_x(a, b)_{ij} x_j r_j,\\
+&\nabla_{b_i}L(\theta) = c_i \sum_{j=1}^s \tau_x(a, b)_{ij} r_j,\\
+&\nabla_{c_i}L(\theta) = \sum_{j=1}^s \tau_x(a, b)_{ij} (a_i x_j + b_i) r_j.\\
+\end{aligned}
+\end{equation}
+
+A curve $\theta(t)$ that is a solution to~\eqref{eq:scaled_gradient_descent} is called an \emph{integral path} for the gradient flow.
+
+
+\subsubsection{Dynamics in the reduced parameter space}
+
+The lifting property described above allows us to study the gradient flow dynamics in terms of the reduced parameters $u, v, \epsilon$. For the moment, we focus on the \emph{local} dynamics: we will assume the parameters $\epsilon$ as well as the activation matrix $\tau$ are fixed and study the trajectories of the neurons. We will later discuss global properties of the dynamics when $\epsilon$ and $\tau$ change.
+
+We denote the loss in terms of the reduced parameters as
+
+\begin{equation}
+    \tilde{L}(\xi) = \sum_{j=1}^s ||\tilde{r}(\xi)||^2, \qquad \tilde{r}(\xi) = f_\xi(x_j) - y_j,
+\end{equation}
+
+The gradient of the reduced loss with respect to the continuous parameters, $u$ an $v$
+
+\begin{equation}\label{eq:reduced_partial_derivatives}
+\begin{aligned}
+    \nabla_{u_i} \tilde{L}(\xi) &= \sum_{j=1}^s \epsilon_i \tau_{ij} x_j \tilde{r_j},\\
+    \nabla_{v_i} \tilde{L}(\xi) &= \sum_{j=1}^s \epsilon_i \tau_{ij} \tilde{r_j}.\\
+\end{aligned}  
+\end{equation}
+
+Note that from \eqref{eq:c_uv}, we observe that $c_i = c_i(u_i, v_i)$ is fully dependent on $u_i$ and $v_i$. Thus, we can write $\tau_x(a, b)_{ij} = \mathds{1}\big[\frac{u_j}{|c_j|}x_i + \frac{u_j}{|c_j|} \geq 0\big] = \tau_x(u, v)_{ij}$. Thus, the right hand side of \eqref{eq:reduced_partial_derivatives} depends only on the parameters $\xi$. Since the parameter $\epsilon$ is not continuous, we cannot differentiate with respect to it. With a slight abuse of notation, we denote the gradient $\nabla \tilde{L}(\xi)$ as
+
+\begin{equation}\label{eq:reduced_gradient}
+    \nabla \tilde{L}(\xi) = \begin{bmatrix} \partial_{u_i} L(\xi) \\ \partial_{v_i} L(\xi) \end{bmatrix}.
+\end{equation}
+
+\note{We should try to clean up this $\epsilon$ thing. Maybe best assume that we restrict ourselves to a fixed ``activation region''. Then we can discuss how we change regions.}
+
+Recall that since the error is piecewise linear in the reduced parameters $\xi$, the integral curves for this vector field are piecewise linear.
+
+\begin{proof}
+\todo{TODO: Write out the proof here}
+% \note{We need to be careful with $\epsilon$ here. The second line of the proof throws away the absolute value which isn't totally correct}
+% \begin{equation}\label{eq:parial_xi_expansion}
+%     \begin{aligned}
+%     \begin{bmatrix}
+%         \partial_t u_i\\
+%         \partial_t v_i
+%     \end{bmatrix}
+%     &=
+%     \begin{bmatrix}
+%         \partial_t (|c_i|a_i)\\
+%         \partial_t (|c_i|b_i)
+%     \end{bmatrix}\\
+%     &=
+%     \begin{bmatrix}
+%         a_i \partial_t c_i + c_i \partial_t a_i\\
+%         b_i \partial_t c_i + c_i \partial_t b_i
+%     \end{bmatrix}\\
+%     &=
+%     -\begin{bmatrix}
+%         a_i \beta \nabla_{c_i} L + c_i \alpha \nabla_{a_i} L\\
+%         b_i \beta \nabla_{c_i} L + c_i \alpha \nabla_{b_i} L
+%     \end{bmatrix}\\
+%     &=
+%     -\begin{bmatrix}
+%         a_i \beta \big(\sum_{j=1}^s \tau_x(a, b)_{ij} (a_i x_j + b_i) r_j \big) + c_i \alpha \big(c_i \sum_{j=1}^s \tau_x(a, b)_{ij} x_j r_j \big)\\
+%         b_i \beta \big(\sum_{j=1}^s \tau_x(a, b)_{ij} (a_i x_j + b_i) r_j \big) + c_i \alpha \big(c_i \sum_{j=1}^s \tau_x(a, b)_{ij} r_j \big)\\
+%     \end{bmatrix}\\
+%     &=
+%     -\begin{bmatrix}
+%         (\beta a_i^2 + \alpha c_i^2) \big(\sum_{j=1}^s \tau_x(a, b)_{ij} x_j r_j \big) + \beta a_i b_i \big(\sum_{j=1}^s \tau_x(a, b)_{ij} r_j \big)\\
+%         \beta a_i b_i \big(\sum_{j=1}^s \tau_x(a, b)_{ij} x_j r_j \big) + (\beta b_i^2 + \alpha c_i^2) \big(\sum_{j=1}^s \tau_x(a, b)_{ij} r_j \big)\\
+%     \end{bmatrix}\\
+%     &= 
+%     -\begin{bmatrix}
+%         \beta a_i^2 + \alpha c_i^2  & \beta a_i b_i        \\
+%         \beta a_i b_i               & \beta b_i^2 + \alpha c_i^2\\
+%     \end{bmatrix}
+%     \begin{bmatrix}
+%         \sum_{j=1}^s \tau_x(a, b)_{ij} x_j r_j \\
+%         \sum_{j=1}^s \tau_x(a, b)_{ij} r_j
+%     \end{bmatrix}
+%     \end{aligned}
+% \end{equation}
+
+% From \eqref{eq:c_uv}, we observe that $c_i = c_i(u_i, v_i)$ is fully dependent on $u_i$ and $v_i$. Thus, we can write $\tau_x(a, b)_{ij} = \mathds{1}\big[\frac{u_j}{|c_j|}x_i + \frac{u_j}{|c_j|} \geq 0\big] = \tau_x(u, v)$.
+
+% Therefore, we can rewrite \eqref{eq:parial_xi_expansion} as 
+
+% \begin{equation}
+%     \begin{aligned}
+%     \begin{bmatrix}
+%         \partial_t u_i\\
+%         \partial_t v_i
+%     \end{bmatrix} &= 
+%     -\begin{bmatrix}
+%         \beta a_i^2 + \alpha c_i^2  & \beta a_i b_i        \\
+%         \beta a_i b_i               & \beta b_i^2 + \alpha c_i^2\\
+%     \end{bmatrix}
+%     \begin{bmatrix}
+%         \sum_{j=1}^s \tau_x(v, u)_{ij} x_j r_j \\
+%         \sum_{j=1}^s \tau_x(u, v)_{ij} r_j
+%     \end{bmatrix}\\
+%     &=
+%     -\begin{bmatrix}
+%         \frac{\beta u_i^2}{c_i^2} + \alpha c_i^2  & \frac{\beta u_i v_i}{c_i^2}        \\
+%         \frac{\beta u_i v_i}{c_i^2}        & \frac{\beta v_i^2}{c_i^2} + \alpha c_i^2  \\
+%     \end{bmatrix}
+%     \begin{bmatrix}
+%         \sum_{j=1}^s \tau_x(u, v)_{ij} x_j r_j \\
+%         \sum_{j=1}^s \tau_x(u, v)_{ij} r_j
+%     \end{bmatrix}\\
+%     &= -K(u, v) \nabla \tilde{L}(u, v)
+%     \end{aligned}
+% \end{equation}
+
+\end{proof}
+
+
+
+Theorem \ref{thm:reduced_parameter_grad} explains how the gradient dynamics of the approximation loss $L(\theta)$ of the network is related to the simpler (piecewise linear) dynamics of approximation loss, $\tilde{L}(\xi)$ in the reduced parameterization: at every point, the gradient of the reduced parameters for each neuron is transformed using the matrix $K(\xi_i)$ given explicitly in~\eqref{eq:neuron_kernel}. This is very closely related to the~\emph{tangent kernel dynamics} described in~ \cite{NTKJacot} (\todo{Let's talk more about this}). On the other hand, the tangent kernel typically changes throughout training depending on the the lift from function space to parameter space, while in our setting the kernel can be written purely as a function of the reduced parameters. This is equivalent to following dynamics in reduced parameter space but with respect to a \emph{new metric}, defined by the inverse of $K(\xi)$. This property holds for all shallow homogeneous networks with one dimensional output (the input dimension can be arbitrary).
+
+
+
+To see this fact, first observe that the angle $\measuredangle_{\xi,\xi'}$ between $\xi' = M_\delta(\xi) \nabla \tilde{L}$ and the radial direction $\xi$ is defined by
+
+\begin{equation}
+    \measuredangle_{\xi,\xi'} = \frac{a^2 + b^2 + c^2}{c^2} {\rm cot} \measuredangle_{\xi,\nabla \tilde{L}}= \left(1 + \frac{4\|\xi\|^2}{(\delta + \sqrt{\delta^2 + 4 \|\xi\|^2})^2}\right) {\rm cot} \measuredangle_{\xi,\nabla \tilde{L}}.
+\end{equation}
+
+% \eqref{eq:radial_eigenval} points in a radial direction away from the origin of the $(u, v)$ plane and \eqref{eq:tangential_eigenval} correspond to motion tangential to a circle in the $(u, v)$-plane. 
+This relation shows that, if we keep $\xi$ fixed, as $\delta \rightarrow -\infty$, the tangent direction $\xi'$ is parallel to $\xi$, while as $\delta \rightarrow \infty$, the tangent direction $\xi'$ is parallel to $\nabla \tilde{L}$.

@@ -1,0 +1,142 @@
+\section{Lazy training}
+\subsection{Outline}
+\begin{itemize}
+    \item Family of kernels \note{Matthew}
+    \item Splines
+    \item Dynamics with eigenvectors (think about uniform distribution).\note{Francis}
+\end{itemize}
+
+\subsection{Families of kernels}
+
+In the ``lazy'' regime, training the network reduces to kernel learning. We recall that given
+
+\begin{equation}
+f(x) = \int_D \varphi(x,\theta) c(\theta) d\theta,
+\end{equation}
+
+the solutions least-squares interpolation
+
+\begin{equation}\label{eq:4-1-min}
+\min \int \|c(\theta)\|^2 d\theta \quad \mbox{ s.t. } f(x_i) = y_i, \,\, i=1,\ldots,s.
+\end{equation}
+
+can be written in terms of the kernel $K(x,x') = \int \varphi(x,\theta) \varphi(x',\theta) d\theta$. Indeed, we have that 
+
+\begin{equation}
+    \hat f(x) = \int_D \hat c(\theta) \varphi(x,\theta) d\theta = \sum_{i=0}^n v_i \int_D \varphi(x,\theta)\varphi(x_i,\theta) d\theta = \sum_{i=0}^n v_i K(x,x_i).
+\end{equation}
+
+where $v = K(x_i,x_j)^{-1} y$. In our setting, we can express a 1D ReLU network function in the form
+
+\begin{equation}
+f(x) = \int c_+(t)[a_+(t) x - ta_+(t)]_+ dt + \int c_-(t)[a_-(t) x - ta_-(t)]_+ dt,
+\end{equation}
+
+where $t$ represents the knot $e = b/a$. The functions $a_+(t)$ and $a_{-}(t)$ encode the distribution of neurons
+with positive and negative coefficient $a$, respectively. The corresponding kernel depends on the function $a_+,a_-$, and can be written as
+
+\begin{equation}
+\begin{aligned}
+K_a(x_1,x_2) &= \int [a(t) x_1 - a(t)t]_+ [a(t) x_2 - a(t)t]_+ dt\\
+&= \int_{t_0}^{\min(x_1,x_2)} a_+(t)^2 (x_1 - t) (x_2 - t)
+dt + \int_{\max(x_1,x_2)}^{t_1} a_{-}(t)^2 (x_1 - t) (x_2 - t) dt\\
+\end{aligned}
+\end{equation}
+
+\begin{proposition} If $a_+(t) = \mathds 1[t_0,t_1]$ and $a_-(t) = 0$ (infinite uniformly distributed neurons with $a=1$), then
+\[
+K(x, x') = \frac{1}{6} \, {\left(3 \, x' -2 \, t_0 - x\right)} {\left(x-t_0\right)}^{2}, \qquad x \le x'.
+\]
+If $a_+(t) = \mathds 1[t_0,t_1]$ and  $a_-(t) = \mathds 1[t_0,t_1]$ (infinite uniformly distributed neurons with $a=1$ and $a=-1$), then
+\[
+K(x, x') = \frac{1}{6} \, {\left(3 \, x' - 2 \, a - x \right)} {\left(x - t_0\right)}^{2} + \frac{1}{6} \, {\left(2 \, t_1 - 3 \, x + x'\right)} {\left(b - x'\right)}^{2}, \qquad x \le x'.
+\]
+\end{proposition}
+
+\note{Discuss relation with known ReLU kernels (different distribution) and with recent 1D ReLU paper}.
+
+\begin{corollary}
+If $a_+(t) = \mathds 1[t_0,t_1]$ and $a_-(t) = 0$ or $a_+(t) = \mathds 1
+[t_0,t_1]$ and $a_-(t) = 1[t_0,t_1]$, the solution to least squares interpolation is a~\emph{cubic spline}, that is, a $C^2$ curve that is cubic in every interval $[x_i,x_j]$.
+\end{corollary}
+
+We include the following derivation is similar to the one in \cite{NTKJacot}, but using a finite dimensional Kernel.
+
+\subsection{Implicit Regularization of Kernel Least-Squares}
+Consider the least-squares problem:
+
+\begin{equation}\label{eq:lsq}
+\begin{gathered}
+    \text{minimize } \frac{1}{2} ||Mc - y||^2
+\end{gathered}
+\end{equation}
+
+If we solve the problem \eqref{eq:lsq} with gradient descent, then $c$ follows the ODE:
+\begin{align}
+    \partial_t c(t) &= - \nabla \frac{1}{2} ||Mc(t) - y||^2\\
+                    &= -(M^T M c - M^T y)
+\end{align}
+
+And $f(t) = Mc(t)$ follows the separable ODE:
+\begin{align}
+    \partial_t f(t) &= M \partial_t c(t)\\
+                    &= M M^T y - M M^T M c\\
+                    &= K y - K Mc \\
+                    &= K y - K f(t)
+\end{align}
+
+whose solutions are of the form:
+\begin{equation}\label{eq:f_dynamics}
+    f(t) \propto \exp(-K) \mathbbm{1} t + y
+\end{equation}
+
+We can decompose $K$ into its eigenbasis where $\mathbf{e_i}$, an eigenvector of $K$ and $\lambda_i$ is the corresponding eigenvalue for $i = 1, \ldots, s$. 
+
+We can then write \eqref{eq:f_dynamics} as:
+\begin{align}
+    f(t) = y + \sum_{i=1}^n exp(-t \lambda_i \mathbf{e_i})
+\end{align}
+
+which implies the dynamics of the residual, $f(t) - y$ are:
+\begin{equation}\label{eq:eigenkernel}
+    f(t) - y = \sum_{i=1}^n exp(-t \lambda_i \mathbf{e_i})
+\end{equation}
+
+Thus, as $t \rightarrow \infty$, the terms $exp(-t \lambda_i\mathbf{e_i})$ decay, at a rate exponential in $\lambda_i$ and $f(t) \rightarrow y$, which, as mentioned in \cite{NTKJacot}, suggests that early stopping acts as a regularizer by decaying the residual primarily along the principle components of the kernel. These principle components usually correspond to smoother  Furthermore, \eqref{eq:eigenkernel} means that if the kernel is not full rank, then the residual cannot go to zero since some $\lambda_i$ will be zero.
+
+\subsection{Avoiding Gradient Descent}
+
+In practice when the kernel is fixed, we can avoid gradient descent altogether and solve the least squares problem using a pseudo-inverse. For non-degenerate kernels, solutions using this method will be interpolatory which is not always desirable in the case of noisy data. We can still exploit the implicit regularization properties discussed in the previous section by modifying the least squares problem to:
+
+\begin{equation}
+    \text{minimize } ||(M + \epsilon I^{s \times m})c - y||^2
+\end{equation},
+
+which has the effect of discounting the principle components of $M$ with small singular values.
+
+\subsubsection{Eigenvectors of Adaptive Kernel}
+In the non-lazy case, we expect the kernels to degenerate as knots pile up at attractor points. The locations of attractor nodes provide a form of implicit regularization as they bias the function, $f(x)$ towards piecewise linear functions with piece boundaries lying at the attractor nodes.
+
+In the extreme of the non-lazy case, all the knots will concentrate on input samples. Multiple overlapping knots will reduce the rank of the Kernel to the number of samples. We can simplify this scenario by considering a kernel with one knot per sample.
+
+Recall, that we can parameterize $f$ in terms of knots $e_i = \frac{-b_i}{a_i}$. Without loss of generality, assume that for all $i$, $a_i = 1$. Now assume that there is one knot per sample, $x_i$, i.e. $x_i = -b_i$. Then we can write $f$ as:
+
+\begin{equation}
+    f(x) = \sum_{i=1}^m c_i [x + x_i]_+
+\end{equation}
+
+and we can write the kernel $K$ as
+\begin{align}
+    K_{ij} &= \sum_{l=1}^m [x_i - b_l]_+ [x_j - b_l]_+\\
+           &= \sum_{l=1}^m [x_i - x_l]_+ [x_j - x_l]_+\\
+           &= \sum_{l = 1}^{\min(x_i, x_j)-1} (x_i - x_l) (x_j - x_l)
+\end{align}
+
+Since $K$ is symmetric positive definite, we can decompose it into matrices $LDL^T$ where $L$ is a lower triangular matrix and $D$ is a diagonal matrix where 
+\begin{equation*}
+    D_{ii} = \begin{cases}\frac{1}{x_i - x_{i-1}}& \text{if } i > 0\\0 & \text{else}\end{cases}
+\end{equation*}
+
+We can orthonormalize the matrix $L$ to get a to get an eigendecomposition of the form $K = U \Lambda U^T$ using givens rotations and appropriate scaling of the rows:
+
+\todo{TODO: Orthogonalize $L$ and compute the appropriate scaling of $D$ to get the correct eigenvalues.}

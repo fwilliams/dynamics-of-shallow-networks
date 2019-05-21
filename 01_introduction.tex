@@ -1,0 +1,34 @@
+\section{Introduction}
+
+Understanding the dynamical behavior of neural network parameters during gradient flow is an important open problem in the literature \todo{\cite{todo} \cite{todo} \cite{todo}}. In this work, we present a complete characterization of the dynamics of neurons for shallow 1D ReLU networks: i.e. those which map real numbers to real numbers. In this setting neurons have a clear geometric interpretation making our results easy to understand. Using our analysis, we relate weight initialization to smoothness properties of the solution. Furthermore, we note that many of the results presented in this paper generalize to higher dimensional inputs, paving the way for a more general analysis of shallow network dynamics.
+
+We divide our analysis into two parts. First, we discuss the \emph{local} evolution of neurons when the ReLU activations are fixed. Here we identify a conserved quantity in the dynamics and two extremal regimes depending only on the scaling of parameters at initialization. We then focus on the \emph{global} dynamics in these two regimes, noting that we can understand the general setting as lying on a spectrum betweeen these extrema: At one end of the spectrum, the network functions do not adapt to the data and bias towards minimizing curvature, while at the other end, the network functions adapt to the input data, producing piecewise linear functions with the boundaries of the pieces lying on the input samples. 
+
+\note{Mention connection with kernels here somehow}
+
+\subsection{Main contributions}
+The primary contributions of this work are as follows
+\begin{itemize}
+    \item We present qualitative and quantitative descritions of the evolution of a neuron for shallow 1D networks
+    \item We explain ``implicit regularization'' phenomena shown in previous work (\todo{cite}) arise naturally due to different weight initializations
+    \item We show the equivalence between infinite width shallow ReLU networks and cubic splines under certain initial conditions
+\end{itemize}
+
+\subsection{Previous work}
+\begin{itemize}
+    \item Neural Tangent Kernel
+    \item Quantization of neural networks \cite{maennel2018gradient}
+    \item How do infinite width bounded norm networks look in
+function space? (1D splines) \cite{savarese2019infinite}
+    \item Training Neural Networks as Learning Data-adaptive Kernels:
+Provable Representation and Approximation Benefits \cite{dou2019training}
+    \item Mean field theory
+    \item implicit bias
+    \item Other papers on neural net dynamics (\note{Joan})
+\end{itemize}
+% \begin{itemize}
+%     \item General literature on critical locus and dynamics.
+%     \item NTK and lazy learning~\cite{NTKJacot,chizat2018note}.
+%     \item Recent works: \cite{savarese2019infinite} on 1D networks, \cite{maennel2018gradient} on attractor nodes, \cite{dou2019training} on adaptive kernels.
+% \end{itemize}
+

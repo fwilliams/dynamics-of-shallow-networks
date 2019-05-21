@@ -1,0 +1,110 @@
+\subsubsection{Deriving Partial Derivatives $\pdv{L}{A}$, $\pdv{L}{B}$, and
+$\pdv{L}{\vec{a}}$} Using Equation~\ref{eq:1layerdnn_s}, we can rewrite $L$ as follows:
+\begin{align}
+    L_i(A, B, \vec{a}) &= ||f(x_i) - y_i||_2^2 \nonumber \\
+                       &= ||B(\diag{S(x_i)}(Ax_i + \vec{a})) - y_i||_2^2  \nonumber \\
+                       &= \big[B S (Ax_i + \vec{a}) - y_i\big]^T \big[B S (Ax_i + \vec{a}) - y_i\big]  \nonumber \\
+                       &= (Ax_i + \vec{a})^TS^T B^T B S (Ax_i + \vec{a}) - 2 y_i^T BS(Ax_i + \vec{a}) - y_i^T y_i  \nonumber
+\end{align}
+where we substituted $S = \diag{S(x_i)}$.\\
+
+We then label each term:
+\begin{equation}\label{eq:expanded_li}
+    \pdv{L_i}{A} = \underbrace{\big[ (Ax_i + \vec{a})S^T B^T B S (Ax_i + \vec{a})\big]}_{\text{(a)}}
+            - 2 \underbrace{ \big[y_i^T BS(Ax_i + \vec{a})\big]}_{\text{(b)}} + y_i^T y_i
+\end{equation}
+
+
+
+
+
+\paragraph{Deriving $\pdv{L}{A}$:} Solve for the partial derivatives of each of the labelled terms in Equation~\ref{eq:expanded_li}:
+
+\begin{flalign}
+    \pdv{}{A}\text{\ref{eq:expanded_li}-(a)} &= \pdv{}{A} \big[ (Ax_i + \vec{a}) S^TB^T B S (Ax_i + \vec{a})\big] \nonumber \\
+                                  &= \pdv{}{A} \big[ (Ax_i + \vec{a}) Q (Ax_i + \vec{a})\big] \nonumber \\
+                                  &= (Q + Q^T)(Ax_i + \vec{a})x_i^T \text{       (See The Matrix Cookbook \cite{IMM2012-03274} Equation 83)} \nonumber \\
+                                  &= 2S^T B^T B S (Ax_i + \vec{a})x_i^T&& \label{eq:pdA_a}
+\end{flalign}
+
+\begin{flalign}
+    \pdv{}{A}\text{\ref{eq:expanded_li}-(b)} &= \pdv{}{A} \big[y_i^T BS(Ax_i + \vec{a})\big] \nonumber \\
+                                  &= \pdv{}{A} \big[ q^T A x_i \big] \nonumber \\
+                                  &= q x_i^T \text{       (See The Matrix Cookbook \cite{IMM2012-03274} Equation 70)} \nonumber \\
+                                  &= S^T B^T y_i x_i^T&& \label{eq:pdA_b}
+\end{flalign}
+
+Combining Equations~\ref{eq:pdA_a}~and~\ref{eq:pdA_b}:
+\begin{equation}\label{eq:dLdA}
+    \pdv{L_i}{A} = 2S^T B^T B S (Ax_i + \vec{a})x_i^T - 2 S^T B^T y_i x_i^T
+\end{equation}
+
+
+
+
+
+
+
+
+
+
+
+
+\paragraph{Deriving $\pdv{L}{B}$:} Again, solve for the partial derivatives of each of the labelled terms in Equation~\ref{eq:expanded_li}:
+
+\begin{flalign}
+    \pdv{}{B}\text{\ref{eq:expanded_li}-(a)} &= \pdv{}{B} \big[ (Ax_i + \vec{a}) S^TB^T B S (Ax_i + \vec{a})\big] \nonumber \\
+                                  &= \pdv{}{B} q^T B^T B q \nonumber \\
+                                  &= 2Bqq^T \text{       (See The Matrix Cookbook \cite{IMM2012-03274} Equation 77)} \nonumber \\
+                                  &= 2BS(Ax_i + \vec{a})(Ax_i + \vec{a})^T S^T&& \label{eq:pdB_a}
+\end{flalign}
+
+\begin{flalign}
+    \pdv{}{B}\text{\ref{eq:expanded_li}-(b)} &= \pdv{}{B} \big[y_i^T BS(Ax_i + \vec{a})\big] \nonumber \\
+                                  &= \pdv{}{B} y_i^T B q \nonumber \\
+                                  &= y_i q^T \text{       (See The Matrix Cookbook \cite{IMM2012-03274} Equation 70)} \nonumber \\
+                                  &= y_i (Ax_i + \vec{a})^T S^T&& \label{eq:pdB_b}
+\end{flalign}
+
+Combining Equations~\ref{eq:pdB_a}~and~\ref{eq:pdB_b}:
+\begin{equation}\label{eq:dLdB}
+    \pdv{L_i}{B} = 2BS(Ax_i + \vec{a})(Ax_i + \vec{a})^T S^T - 2 y_i (Ax_i + \vec{a})^T S^T
+\end{equation}
+
+
+
+
+
+
+
+\paragraph{Deriving $\pdv{L}{\vec{a}}$:} Once more, solve for the partial derivatives of each of the labelled terms in Equation~\ref{eq:expanded_li}:
+
+\begin{flalign}
+    \pdv{}{\vec{a}}\text{\ref{eq:expanded_li}-(a)} &= \pdv{}{\vec{a}} \big[ (Ax_i + \vec{a}) S^T B^T B S (Ax_i + \vec{a})\big] \nonumber \\
+                                                   &= \pdv{}{\vec{a}} \vec{a}^T S^T B^T B S \vec{a} \nonumber \\
+                                                   &= 2 S^T B^T B S \vec{a} \text{       (See The Matrix Cookbook \cite{IMM2012-03274} Equation 97)}&& \label{eq:pda_a}
+\end{flalign}
+
+\begin{flalign}
+    \pdv{}{\vec{a}}\text{\ref{eq:expanded_li}-(b)} &= \pdv{}{\vec{a}} \big[y_i^T BS(Ax_i + \vec{a})\big] \nonumber \\
+                                                   &= \pdv{}{\vec{a}} y_i^T BS \vec{a} \nonumber \\
+                                                   &= S^T B^T y_i \text{       (See The Matrix Cookbook \cite{IMM2012-03274} Equation 69)}&& \label{eq:pda_b}
+\end{flalign}
+
+Combining Equations~\ref{eq:pda_a}~and~\ref{eq:pda_b}:
+\begin{equation}\label{eq:dLda}
+    \pdv{L_i}{\vec{a}} = 2 S^T B^T B S \vec{a} - 2 S^T B^T y_i
+\end{equation}
+
+
+
+\subsubsection{The Effect of a Gradient Step}
+Given the partial derivatives in Equations~\ref{eq:dLdA},~\ref{eq:dLdB},~and~\ref{eq:dLda}, we can explicitly write out the gradient step:
+
+\begin{align}
+    A^\prime       &= A + \epsilon \sum_{i} 2S_i^T B^T B S_i (Ax_i + \vec{a})x_i^T - 2 S_i^T B^T y_i x_i^T \\
+    B^\prime       &= B + \epsilon \sum_{i} 2BS_i(Ax_i + \vec{a})(Ax_i + \vec{a})^T S_i^T - 2 y_i (Ax_i + \vec{a})^T S_i^T \\
+    \vec{a}^\prime &= \vec{a} + \epsilon \sum_{i} 2 S_i^T B^T B S_i \vec{a} - 2 S_i^T B^T y_i
+\end{align}
+
+where $S_i = S(x_i)$.
