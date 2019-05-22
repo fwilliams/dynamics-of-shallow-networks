@@ -1,3 +1,66 @@
+\section{The Functional Space of ReLU Networks}
+
+In this section, we consider the class of 1D shallow ReLU functions with exactly $m$ neurons:
+
+\begin{equation}
+    \mathcal F_m = \{f_{\bm \theta}: \RR\rightarrow \RR\},\qquad
+    f_{\bm \theta}(x) = \sum_{i=1}^m c_i[a_i x + b_i]_+.
+\end{equation}
+
+It is easy to see that $\mathcal F_m$ is a subset of the set $CPL_m$ of \emph{continuous piecewise-linear maps} with at most $m$ knots. 
+
+\begin{proposition} The space $\mathcal F_m$ is a strict subset of $CPL_m$, but it contains $CPL_{m-2}$.
+\end{proposition}
+\begin{proof} The fact that $\mathcal F_m \subsetneq CPL_m$ can be argued by observing that $\mathcal F_m$ has $2m$ degrees of freedom, whereas $CPL_{m}$ has $2m+2$ degrees of freedom. More precisely, we can partition the parameter space of $f_{\bm \theta}$ based on the signs $\sigma_i = {\rm sign}(a_i)$. Within each region, we may write
+\begin{equation}
+    f_{\bm \theta}(x)\sum_{i=1}^m c_i [a_i(x-e_i)]_+ = \sum_{i=1}^m u_i [\sigma_i (x-e_i)]_+, \qquad u_i = |a_i| c_i.
+\end{equation}
+We see that interpolatory constraints on $f_{\bm \theta}(x)$ correspond to linear conditions on $u_i$. In particular, there are a finite number of functions in $\mathcal F_m$ with fixed assigned (generic) values at the knots $e_1<\ldots < e_m$. This contrasts with $CPL_m$, where the slope in the intervals $[-\infty,e_1]$ and $[e_m,\infty]$ may be chosen arbitrarily. Finally, by setting $e_1 = e_2$ and $e_{m-1} = e_m$, then we can control the two remaining slopes, and we recover that $CPL_{m-2} \subset \mathcal F_m$.
+\end{proof}
+
+
+\section{Spline Kernels}
+
+
+\begin{proposition} If $a_+(s) = \mathds 1[k_0,k_1]$ or $a_+(x) = a_-(s) = \mathds 1[k_0,k_1]$, the kernel $K(x,x')$ is a piecewise cubic polynomial in $x$ and $x'$. In particular, in the overparameterized setting, the solution~\eqref{eq:kernel_solution} will be an interpolating \emph{cublic spline}.
+\end{proposition}
+
+\begin{proof}
+Assuming that $x < x'$, we have that
+
+
+\begin{equation}
+\begin{aligned}
+\int_{k_0}^{k_1} [x-s]_+[x'-s]_+ ds &= \int_{k_0}^{x} (x-s)(x'-s) ds\\
+&=
+\left[\frac{1}{3} \, s^{3} - \frac{1}{2} \, s^{2} {\left(x + x'\right)} + s x x'\right]_{k_0}^{x}\\
+&=-\frac{1}{6} \, {\left(2 \, k_0 + x - 3 \, x'\right)} {\left(k_0 - x\right)}^{2}
+\end{aligned}
+\end{equation}
+\begin{equation}
+\begin{aligned}
+\int_{k_0}^{k_1} [x-s]_+[x'-s]_+ ds &+ \int_{k_0}^{k_1} [-x+s]_+[-x'+s]_+ ds\\
+&= \int_{k_0}^{x} (x-s)(x'-s) ds 
++ \int_{x'}^{k_1} (s-x)(s-x') ds. \\
+&=-\frac{1}{6} \, {\left(2 \, k_0 + x - 3 \, x'\right)} {\left(k_0 - x\right)}^{2} + \frac{1}{6} \, {\left(2 \, k_1 - 3 \, x + x'\right)} {\left(k_1 - x'\right)}^{2}.
+\end{aligned}
+\end{equation}
+We thus define the kernels
+\begin{equation}
+K_1(x, x') = \left[\frac{1}{6} \, {\left(3 \, x' -2 \, k_0 - x\right)} {\left(x- k_0\right)}^{2}\right], \qquad x \le x',
+\end{equation}
+\begin{equation}
+K_2(x, x') = \left[\frac{1}{6} \, {\left(3 \, x' - 2 \, a - x \right)} {\left(x - k_0\right)}^{2} + \frac{1}{6} \, {\left(2 \, k_1 - 3 \, x + x'\right)} {\left(k_1 - x'\right)}^{2} \right], \qquad x \le x'.
+\end{equation}
+Both $K_1(x,x')$ and $K_2(x,x')$ are both piecewise cubic and $C^2$ in both arguments.
+This immediately implies that the solution to the least squares problem $\hat f(x) = \sum_{i=1}^s \alpha_i K_r(x,x_i)$ ($r=1,2$) is a \emph{cubic spline} interpolating the samples $x_1,\ldots,x_s$.
+\end{proof}
+
+
+\section{Mixed Learning}
+
+
+\section{Here be dragons: Denis, you have ventured too far}
 
 \section{Tangent Kernels and Gradient Flows}
 Let $C: H \rightarrow \RR$ be a smooth function on a Hilbert space $H$ (for
@@ -502,3 +565,83 @@ To see this fact, first observe that the angle $\measuredangle_{\xi,\xi'}$ betwe
 
 % \eqref{eq:radial_eigenval} points in a radial direction away from the origin of the $(u, v)$ plane and \eqref{eq:tangential_eigenval} correspond to motion tangential to a circle in the $(u, v)$-plane. 
 This relation shows that, if we keep $\xi$ fixed, as $\delta \rightarrow -\infty$, the tangent direction $\xi'$ is parallel to $\xi$, while as $\delta \rightarrow \infty$, the tangent direction $\xi'$ is parallel to $\nabla \tilde{L}$.
+
+
+
+For this reason, we subdivide the parameter space into \emph{regions} associated with different \emph{activation patterns}:\note{we should probably allow $c=0$ and then properly define the interior of a region} \todo{Reference the figure here}
+
+\begin{equation}
+    R(\bm \tau,\bm \epsilon) = \{\bm \theta = (\bm a, \bm b, \bm c) \in \RR^{3m} \, | \, \mathds 1 [a_j x_i + b_j \ge 0] = \tau_{ij},\, {\rm sign}(c_j) = \epsilon_j\}, \quad \bm \tau \in \{0,1\}^{s \times m}, \bm \epsilon \in \{-1,1\}^{m}.
+\end{equation}
+
+If $R(\bm \tau, \bm \epsilon)$ is not empty, it is a polyhedral cone containing the origin, and it is a product of ``sectors'' corresponding to the activation pattern of each neuron. It is important to note that, in our one-dimensional setting, every neuron can have \emph{at most} $2s$ activation patterns (out of the possible $2^s$ combinatorial types), which means that, for $R(\bm \tau, \bm \epsilon)$ to be non-empty, the columns of $\bm \tau$ must be chosen among $2s$ possible vectors.
+In the interior of a non-empty region $R(\bm \tau, \bm \epsilon)$, the gradient of $L(\bm \theta)$ can be written as
+\begin{equation}\label{eq:derivative_equations}
+\begin{aligned}
+&\nabla_{a_i}L(\bm \theta) = c_i \sum_{j=1}^s \tau_{ij} x_j r_j,\\
+&\nabla_{b_i}L(\bm \theta) = c_i \sum_{j=1}^s \tau_{ij} r_j,\\
+&\nabla_{c_i}L(\bm \theta) = \sum_{j=1}^s \tau_{ij} (a_i x_j + b_i) r_j,\\
+\end{aligned}
+\end{equation}
+where $r_j = f_{\bm \theta}(x_j) - y_j$ is the $j$-th \emph{residual}. Finally, we remark that a solution $\bm \theta(t)$ to~\eqref{eq:gradient_flow} will in general converge to a first-order stationary point $\bm \theta^*$ where $0 \in \partial L(\bm \theta^*)$. For certain asymptotic (highly over-parameterized) regimes, it is possible to show convergence to global optima~\cite{du2018gradient,chizat2018global}. In our concrete low dimensional setting, we can state the following result.
+
+\begin{proposition} Let $\bm \theta^* = (\bm a^*, \bm b^*, \bm c^*)$ be a critical point for $L(\bm \theta)$, and consider the matrix
+\begin{equation}
+    \bm M_{\bm a^* \bm b^*} = \big [ [a_j^* x_i + b_j^*]_+ \big ]_{ij} \in \RR^{s \times m}.
+\end{equation}
+If $\bm M_{\bm a^* \bm b^*}$ has full rank, then $L(\bm \theta^*) = 0$, so $\bm \theta^*$ is a global minimum. If $s< m$ and $e_1 \le \ldots \le e_m$ are the knots~\eqref{eq:knots} associated with $\bm \theta^*$, then a sufficient condition for $\bm M_{\bm a^* \bm b^*}$ to have full rank is that each interval $[-\infty, e_1],[e_1,e_2],\ldots,[e_m,\infty]$ contains at most one sample point $x_i$.
+\end{proposition}
+
+
+
+
+
+\subsection{Neural Networks are CPL Maps}\label{sec:cpl}
+\begin{remark}
+In all cases, $\mathcal F_m$ is contained in the the set $CPL_m$ of \emph{continuous piecewise-linear} functions with at most $m$ knots. Although $\mathcal F_m$ is a strict subset of $CPL_m$, it contains $CPL_{m-1}$ (see Section~\ref{sec:cpl}). In particular, many parameter values can interpolate the samples and have zero loss $L(\bm z) = 0$.
+\note{Francis: Maybe we kill this?}
+\end{remark}
+
+\subsection{Derivation of Tangent Kernel}
+
+\subsection{Implicit Regularization of Kernel Least-Squares}\label{sec:implicit_regularizer}
+Consider the least-squares problem:
+
+\begin{equation}\label{eq:lsq}
+\begin{gathered}
+    \text{minimize } \frac{1}{2} ||Mc - y||^2
+\end{gathered}
+\end{equation}
+
+If we solve the problem \eqref{eq:lsq} with gradient descent, then $c$ follows the ODE:
+\begin{align}
+    \partial_t c(t) &= - \nabla \frac{1}{2} ||Mc(t) - y||^2\\
+                    &= -(M^T M c - M^T y)
+\end{align}
+
+And $f(t) = Mc(t)$ follows the separable ODE:
+\begin{align}
+    \partial_t f(t) &= M \partial_t c(t)\\
+                    &= M M^T y - M M^T M c\\
+                    &= K y - K Mc \\
+                    &= K y - K f(t)
+\end{align}
+
+whose solutions are of the form:
+\begin{equation}\label{eq:f_dynamics}
+    f(t) \propto \exp(-K) \mathbbm{1} t + y
+\end{equation}
+
+We can decompose $K$ into its eigenbasis where $\mathbf{e_i}$, an eigenvector of $K$ and $\lambda_i$ is the corresponding eigenvalue for $i = 1, \ldots, s$. 
+
+We can then write \eqref{eq:f_dynamics} as:
+\begin{align}
+    f(t) = y + \sum_{i=1}^n exp(-t \lambda_i \mathbf{e_i})
+\end{align}
+
+which implies the dynamics of the residual, $f(t) - y$ are:
+\begin{equation}\label{eq:eigenkernel}
+    f(t) - y = \sum_{i=1}^n exp(-t \lambda_i \mathbf{e_i})
+\end{equation}
+
+Thus, as $t \rightarrow \infty$, the terms $exp(-t \lambda_i\mathbf{e_i})$ decay, at a rate exponential in $\lambda_i$ and $f(t) \rightarrow y$, which, as mentioned in \cite{NTKJacot}, suggests that early stopping acts as a regularizer by decaying the residual primarily along the principle components of the kernel. These principle components usually correspond to smoother  Furthermore, \eqref{eq:eigenkernel} means that if the kernel is not full rank, then the residual cannot go to zero since some $\lambda_i$ will be zero.
